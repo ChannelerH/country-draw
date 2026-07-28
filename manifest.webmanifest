@@ -1,0 +1,9 @@
+{
+  "name": "Country Draw",
+  "short_name": "Country Draw",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3e8",
+  "theme_color": "#173f58",
+  "description": "Draw countries, states, flags, and outlines from memory."
+}
