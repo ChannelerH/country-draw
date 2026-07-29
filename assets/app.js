@@ -63,6 +63,8 @@
     let interactionMode = "draw";
     let result = null;
     let capitalMarker = null;
+    let shareBlob = null;
+    let shareObjectUrl = "";
     let stats = loadStats();
 
     renderShell();
@@ -105,7 +107,7 @@
                 </div>
                 <div class="map-result-actions">
                   <button type="button" data-action="map-retry">Try again</button>
-                  <button type="button" data-action="map-share">Share</button>
+                <button type="button" data-action="map-share">Share score</button>
                 </div>
               </section>
 
@@ -159,7 +161,7 @@
 
               <div class="primary-controls">
                 <button type="button" class="map-primary-action" data-action="submit">Submit drawing</button>
-                <button type="button" data-action="share" hidden>Share result</button>
+                <button type="button" data-action="share" hidden>Share score</button>
               </div>
 
               <div class="challenge-switcher">
@@ -179,6 +181,31 @@
               </div>
             </aside>
           </div>
+
+          <dialog class="share-dialog" data-share-dialog aria-labelledby="share-dialog-title">
+            <div class="share-dialog-shell">
+              <header class="share-dialog-header">
+                <div>
+                  <p>Ready to share</p>
+                  <h2 id="share-dialog-title">Share your score</h2>
+                </div>
+                <button type="button" class="share-dialog-close" data-action="close-share" title="Close share preview" aria-label="Close share preview">&times;</button>
+              </header>
+
+              <div class="share-preview">
+                <img data-share-preview alt="">
+                <div class="share-preview-loading" data-share-loading aria-live="polite">Building your score card...</div>
+              </div>
+
+              <p class="share-feedback" data-share-feedback aria-live="polite">Your score card includes the result map and all four score values.</p>
+
+              <div class="share-dialog-actions">
+                <button type="button" class="share-action-primary" data-action="native-share">Share image</button>
+                <button type="button" data-action="copy-result">Copy result</button>
+                <button type="button" data-action="download-result">Download PNG</button>
+              </div>
+            </div>
+          </dialog>
         </section>
       `;
 
@@ -283,12 +310,20 @@
       container.querySelector("[data-action='undo']").addEventListener("click", undoPath);
       container.querySelector("[data-action='clear']").addEventListener("click", clearDrawing);
       container.querySelector("[data-action='submit']").addEventListener("click", submitDrawing);
-      container.querySelector("[data-action='share']").addEventListener("click", shareResult);
+      container.querySelector("[data-action='share']").addEventListener("click", openShareDialog);
       container.querySelector("[data-action='dismiss-result']").addEventListener("click", dismissMapResult);
       container.querySelector("[data-action='map-retry']").addEventListener("click", function () {
         startChallenge(target, challengeType);
       });
-      container.querySelector("[data-action='map-share']").addEventListener("click", shareResult);
+      container.querySelector("[data-action='map-share']").addEventListener("click", openShareDialog);
+      container.querySelector("[data-action='close-share']").addEventListener("click", closeShareDialog);
+      container.querySelector("[data-action='native-share']").addEventListener("click", shareResultImage);
+      container.querySelector("[data-action='copy-result']").addEventListener("click", copyResult);
+      container.querySelector("[data-action='download-result']").addEventListener("click", downloadResultImage);
+      const shareDialog = container.querySelector("[data-share-dialog]");
+      shareDialog.addEventListener("click", function (event) {
+        if (event.target === shareDialog) closeShareDialog();
+      });
       container.querySelector("[data-action='daily']").addEventListener("click", function () {
         challengeType = "daily";
         startChallenge(dailyFeature(regionKey, gameMode), "daily");
@@ -345,6 +380,7 @@
       result = null;
       drawingPaths = [];
       activePath = [];
+      resetShareCard();
       clearResultLayers();
       removeCapitalMarker();
       setInteractionMode("draw");
@@ -374,8 +410,8 @@
       container.querySelector("[data-map-result]").hidden = true;
       container.querySelector(".map-stage").classList.remove("is-showing-result");
       container.querySelector("[data-action='share']").hidden = true;
-      container.querySelector("[data-action='share']").textContent = "Share result";
-      container.querySelector("[data-action='map-share']").textContent = "Share";
+      container.querySelector("[data-action='share']").textContent = "Share score";
+      container.querySelector("[data-action='map-share']").textContent = "Share score";
       container.querySelector("[data-action='submit']").hidden = false;
       container.querySelector("[data-action='submit']").disabled = false;
       container.querySelector("[data-action='submit']").textContent = "Submit drawing";
@@ -770,30 +806,414 @@
       `).join("");
     }
 
-    async function shareResult() {
+    async function openShareDialog() {
       if (!result) return;
-      const text = [
-        `Country Draw ${todayLabel()}`,
-        `${target.properties.name}: ${result.accuracy}%`,
-        `Matched ${result.matched}% | Missed ${result.missedPercent}% | Extra ${result.extraPercent}%`,
-        location.href
-      ].join("\n");
-      const button = container.querySelector("[data-action='share']");
-      const mapButton = container.querySelector("[data-action='map-share']");
+      const dialog = container.querySelector("[data-share-dialog]");
+      const preview = container.querySelector("[data-share-preview]");
+      const loading = container.querySelector("[data-share-loading]");
+      const feedback = container.querySelector("[data-share-feedback]");
+      const nativeButton = container.querySelector("[data-action='native-share']");
+
+      resetShareCard();
+      container.querySelector("#share-dialog-title").textContent = `Share ${target.properties.name}`;
+      preview.alt = `${target.properties.name} Country Draw score card showing ${result.accuracy}% accuracy`;
+      loading.hidden = false;
+      loading.textContent = "Building your score card...";
+      feedback.textContent = "Your score card includes the result map and all four score values.";
+      nativeButton.hidden = typeof navigator.share !== "function";
+      setShareActionsDisabled(true);
+      dialog.showModal();
+
       try {
-        if (typeof navigator.share === "function") {
-          await navigator.share({ title: "Country Draw", text });
-          button.textContent = "Shared";
-          mapButton.textContent = "Shared";
-          track("result_shared", { share_method: "native", score: result.accuracy });
-        } else {
-          await copyText(text);
-          button.textContent = "Copied";
-          mapButton.textContent = "Copied";
-          track("result_shared", { share_method: "clipboard", score: result.accuracy });
+        shareBlob = await buildShareCard();
+        shareObjectUrl = URL.createObjectURL(shareBlob);
+        preview.src = shareObjectUrl;
+        await preview.decode().catch(() => {});
+        loading.hidden = true;
+        setShareActionsDisabled(false);
+        track("share_preview_opened", {
+          region: regionKey,
+          target_slug: target.properties.slug,
+          score: result.accuracy
+        });
+      } catch (error) {
+        console.error("Unable to build score card:", error);
+        loading.textContent = "The score card could not be created.";
+        feedback.textContent = "Close this preview and try again.";
+      }
+    }
+
+    function closeShareDialog() {
+      const dialog = container.querySelector("[data-share-dialog]");
+      if (dialog.open) dialog.close();
+    }
+
+    function resetShareCard() {
+      closeShareDialog();
+      if (shareObjectUrl) URL.revokeObjectURL(shareObjectUrl);
+      shareObjectUrl = "";
+      shareBlob = null;
+      const preview = container.querySelector("[data-share-preview]");
+      if (preview) preview.removeAttribute("src");
+      container.querySelectorAll("[data-action='copy-result'], [data-action='download-result']").forEach((button) => {
+        button.textContent = button.dataset.action === "copy-result" ? "Copy result" : "Download PNG";
+      });
+    }
+
+    function setShareActionsDisabled(disabled) {
+      container.querySelectorAll(".share-dialog-actions button").forEach((button) => {
+        button.disabled = disabled;
+      });
+    }
+
+    function shareText(includeUrl = true) {
+      const lines = [
+        `Country Draw ${todayLabel()}`,
+        `${target.properties.name}: ${result.accuracy}% accuracy`,
+        `Matched ${result.matched}% | Missed ${result.missedPercent}% | Extra ${result.extraPercent}%`
+      ];
+      if (includeUrl) lines.push(location.href);
+      return lines.join("\n");
+    }
+
+    async function shareResultImage() {
+      if (!shareBlob || typeof navigator.share !== "function") return;
+      const file = new File([shareBlob], shareFileName(), { type: "image/png" });
+      const data = {
+        title: `${target.properties.name} | Country Draw`,
+        text: shareText(false),
+        url: location.href
+      };
+      try {
+        if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+          data.files = [file];
         }
+        await navigator.share(data);
+        setShareFeedback("Shared successfully.");
+        track("result_shared", {
+          share_method: data.files ? "native_image" : "native_text",
+          score: result.accuracy
+        });
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setShareFeedback("Sharing was not available. Copy the result or download the PNG instead.");
+        }
+      }
+    }
+
+    async function copyResult() {
+      if (!result) return;
+      const button = container.querySelector("[data-action='copy-result']");
+      try {
+        await copyText(shareText());
+        button.textContent = "Copied";
+        setShareFeedback("Result and link copied to the clipboard.");
+        track("result_shared", { share_method: "clipboard", score: result.accuracy });
       } catch {
-        // Closing the system share sheet is not an error that needs user feedback.
+        setShareFeedback("Clipboard access was blocked. Download the PNG instead.");
+      }
+    }
+
+    function downloadResultImage() {
+      if (!shareBlob) return;
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(shareBlob);
+      link.href = url;
+      link.download = shareFileName();
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      container.querySelector("[data-action='download-result']").textContent = "Downloaded";
+      setShareFeedback("PNG score card downloaded.");
+      track("result_shared", { share_method: "download_png", score: result.accuracy });
+    }
+
+    function setShareFeedback(message) {
+      container.querySelector("[data-share-feedback]").textContent = message;
+    }
+
+    function shareFileName() {
+      return `country-draw-${target.properties.slug}-${result.accuracy}.png`;
+    }
+
+    function buildShareCard() {
+      const card = document.createElement("canvas");
+      card.width = 1200;
+      card.height = 630;
+      const cardContext = card.getContext("2d");
+      const colors = {
+        background: "#f5f3ed",
+        surface: "#ffffff",
+        ink: "#14232b",
+        muted: "#52636d",
+        blue: "#174760",
+        green: "#2dcc75",
+        red: "#f24d3f",
+        gold: "#ffa617",
+        track: "#dce0dd",
+        line: "#c9cfcb"
+      };
+
+      cardContext.fillStyle = colors.background;
+      cardContext.fillRect(0, 0, card.width, card.height);
+      drawCardGrid(cardContext, colors.line);
+
+      cardContext.fillStyle = colors.blue;
+      cardContext.fillRect(0, 0, card.width, 86);
+      cardContext.fillStyle = "#ffffff";
+      cardContext.font = "900 34px system-ui, sans-serif";
+      cardContext.fillText("COUNTRY DRAW", 50, 55);
+      cardContext.textAlign = "right";
+      cardContext.font = "800 17px system-ui, sans-serif";
+      cardContext.fillText(
+        `${challengeType === "daily" ? "DAILY CHALLENGE" : "PRACTICE ROUND"}  ·  ${todayLabel().toUpperCase()}`,
+        1150,
+        52
+      );
+      cardContext.textAlign = "left";
+
+      drawRoundedRect(cardContext, 46, 118, 650, 454, 8, colors.surface, colors.ink, 2);
+      cardContext.fillStyle = colors.muted;
+      cardContext.font = "800 16px system-ui, sans-serif";
+      cardContext.fillText("YOUR MAP RESULT", 72, 151);
+      drawShareMap(cardContext, { x: 70, y: 170, width: 602, height: 374 }, colors);
+
+      const contentX = 744;
+      cardContext.fillStyle = colors.muted;
+      cardContext.font = "800 16px system-ui, sans-serif";
+      cardContext.fillText(regionConfig[regionKey].label.toUpperCase(), contentX, 139);
+
+      cardContext.fillStyle = colors.ink;
+      const titleBottom = drawShareTitle(cardContext, target.properties.name, contentX, 183, 400);
+
+      cardContext.fillStyle = colors.muted;
+      cardContext.font = "800 18px system-ui, sans-serif";
+      cardContext.fillText("Accuracy", contentX, titleBottom + 30);
+      cardContext.fillStyle = colors.blue;
+      cardContext.font = "900 68px Georgia, serif";
+      cardContext.fillText(`${result.accuracy}%`, contentX, titleBottom + 90);
+
+      const scoreStart = titleBottom + 120;
+      drawShareScore(cardContext, "Matched", result.matched, scoreStart, colors.green, colors);
+      drawShareScore(cardContext, "Missed", result.missedPercent, scoreStart + 54, colors.red, colors);
+      drawShareScore(cardContext, "Extra", result.extraPercent, scoreStart + 108, colors.gold, colors);
+
+      cardContext.fillStyle = colors.muted;
+      cardContext.font = "700 17px system-ui, sans-serif";
+      cardContext.fillText("Can you draw it closer?", contentX, 551);
+      cardContext.fillStyle = colors.blue;
+      cardContext.font = "900 20px system-ui, sans-serif";
+      cardContext.fillText("countrydraw.games", contentX, 580);
+
+      return new Promise((resolve, reject) => {
+        card.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Canvas export failed")), "image/png");
+      });
+    }
+
+    function drawCardGrid(cardContext, color) {
+      cardContext.save();
+      cardContext.strokeStyle = color;
+      cardContext.globalAlpha = 0.28;
+      cardContext.lineWidth = 1;
+      for (let x = 0; x <= 1200; x += 60) {
+        cardContext.beginPath();
+        cardContext.moveTo(x, 86);
+        cardContext.lineTo(x, 630);
+        cardContext.stroke();
+      }
+      for (let y = 86; y <= 630; y += 60) {
+        cardContext.beginPath();
+        cardContext.moveTo(0, y);
+        cardContext.lineTo(1200, y);
+        cardContext.stroke();
+      }
+      cardContext.restore();
+    }
+
+    function drawShareTitle(cardContext, title, x, y, maxWidth) {
+      let fontSize = 38;
+      let lines = [];
+      while (fontSize >= 28) {
+        cardContext.font = `900 ${fontSize}px Georgia, serif`;
+        lines = wrapCanvasText(cardContext, title, maxWidth);
+        if (lines.length <= 3) break;
+        fontSize -= 2;
+      }
+      cardContext.font = `900 ${fontSize}px Georgia, serif`;
+      lines.slice(0, 3).forEach((titleLine, index) => {
+        cardContext.fillText(titleLine, x, y + index * (fontSize + 6));
+      });
+      return y + (Math.min(lines.length, 3) - 1) * (fontSize + 6);
+    }
+
+    function wrapCanvasText(cardContext, text, maxWidth) {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let line = "";
+      words.forEach((word) => {
+        const nextLine = line ? `${line} ${word}` : word;
+        if (line && cardContext.measureText(nextLine).width > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = nextLine;
+        }
+      });
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    function drawShareScore(cardContext, label, value, y, color, colors) {
+      cardContext.fillStyle = colors.ink;
+      cardContext.font = "800 17px system-ui, sans-serif";
+      cardContext.fillText(label, 744, y);
+      cardContext.textAlign = "right";
+      cardContext.fillText(`${value}%`, 1148, y);
+      cardContext.textAlign = "left";
+      drawRoundedRect(cardContext, 744, y + 13, 404, 14, 7, colors.track);
+      const width = Math.max(value > 0 ? 8 : 0, Math.min(404, 404 * value / 100));
+      if (width) drawRoundedRect(cardContext, 744, y + 13, width, 14, 7, color);
+    }
+
+    function drawShareMap(cardContext, frame, colors) {
+      const projectedBounds = geoBounds(displayTarget);
+      if (!projectedBounds) return;
+      const padding = 30;
+      const availableWidth = frame.width - padding * 2;
+      const availableHeight = frame.height - padding * 2;
+      const rangeX = Math.max(0.0001, projectedBounds.maxX - projectedBounds.minX);
+      const rangeY = Math.max(0.0001, projectedBounds.maxY - projectedBounds.minY);
+      const scale = Math.min(availableWidth / rangeX, availableHeight / rangeY);
+      const offsetX = frame.x + (frame.width - rangeX * scale) / 2;
+      const offsetY = frame.y + (frame.height - rangeY * scale) / 2;
+      const project = (coordinate) => {
+        const point = mercatorPoint(coordinate);
+        return [
+          offsetX + (point[0] - projectedBounds.minX) * scale,
+          offsetY + (projectedBounds.maxY - point[1]) * scale
+        ];
+      };
+
+      cardContext.save();
+      cardContext.beginPath();
+      cardContext.rect(frame.x, frame.y, frame.width, frame.height);
+      cardContext.clip();
+      paintGeoFeature(cardContext, result.extra, project, colors.gold, null, 0);
+      paintGeoFeature(cardContext, result.missed, project, colors.red, null, 0);
+      paintGeoFeature(cardContext, result.overlap, project, colors.green, null, 0);
+      paintGeoFeature(cardContext, displayTarget, project, null, colors.ink, 4);
+      cardContext.setLineDash([9, 7]);
+      paintGeoFeature(cardContext, result.userFeature, project, null, colors.blue, 3);
+      cardContext.setLineDash([]);
+      cardContext.restore();
+    }
+
+    function geoBounds(feature) {
+      const coordinates = [];
+      collectGeoCoordinates(feature, coordinates);
+      if (!coordinates.length) return null;
+      const points = coordinates.map(mercatorPoint);
+      return {
+        minX: Math.min(...points.map((point) => point[0])),
+        maxX: Math.max(...points.map((point) => point[0])),
+        minY: Math.min(...points.map((point) => point[1])),
+        maxY: Math.max(...points.map((point) => point[1]))
+      };
+    }
+
+    function collectGeoCoordinates(value, output) {
+      if (!value) return;
+      if (value.type === "Feature") {
+        collectGeoCoordinates(value.geometry, output);
+        return;
+      }
+      if (value.type === "FeatureCollection") {
+        value.features.forEach((feature) => collectGeoCoordinates(feature, output));
+        return;
+      }
+      if (value.type === "GeometryCollection") {
+        value.geometries.forEach((geometry) => collectGeoCoordinates(geometry, output));
+        return;
+      }
+      collectCoordinateArray(value.coordinates, output);
+    }
+
+    function collectCoordinateArray(value, output) {
+      if (!Array.isArray(value)) return;
+      if (value.length >= 2 && Number.isFinite(value[0]) && Number.isFinite(value[1])) {
+        output.push(value);
+        return;
+      }
+      value.forEach((child) => collectCoordinateArray(child, output));
+    }
+
+    function mercatorPoint(coordinate) {
+      const latitude = Math.max(-84.5, Math.min(84.5, coordinate[1]));
+      const radians = latitude * Math.PI / 180;
+      return [coordinate[0], Math.log(Math.tan(Math.PI / 4 + radians / 2)) * 180 / Math.PI];
+    }
+
+    function paintGeoFeature(cardContext, feature, project, fill, stroke, lineWidth) {
+      if (!feature) return;
+      cardContext.beginPath();
+      appendGeoPath(cardContext, feature, project);
+      if (fill) {
+        cardContext.fillStyle = fill;
+        cardContext.globalAlpha = 0.82;
+        cardContext.fill("evenodd");
+        cardContext.globalAlpha = 1;
+      }
+      if (stroke) {
+        cardContext.strokeStyle = stroke;
+        cardContext.lineWidth = lineWidth;
+        cardContext.lineJoin = "round";
+        cardContext.lineCap = "round";
+        cardContext.stroke();
+      }
+    }
+
+    function appendGeoPath(cardContext, value, project) {
+      if (!value) return;
+      if (value.type === "Feature") {
+        appendGeoPath(cardContext, value.geometry, project);
+        return;
+      }
+      if (value.type === "FeatureCollection") {
+        value.features.forEach((feature) => appendGeoPath(cardContext, feature, project));
+        return;
+      }
+      if (value.type === "GeometryCollection") {
+        value.geometries.forEach((geometry) => appendGeoPath(cardContext, geometry, project));
+        return;
+      }
+      const polygons = value.type === "Polygon"
+        ? [value.coordinates]
+        : value.type === "MultiPolygon" ? value.coordinates : [];
+      polygons.forEach((polygon) => {
+        polygon.forEach((ring) => {
+          ring.forEach((coordinate, index) => {
+            const point = project(coordinate);
+            if (index) cardContext.lineTo(point[0], point[1]);
+            else cardContext.moveTo(point[0], point[1]);
+          });
+          cardContext.closePath();
+        });
+      });
+    }
+
+    function drawRoundedRect(cardContext, x, y, width, height, radius, fill, stroke, lineWidth = 1) {
+      const safeRadius = Math.min(radius, width / 2, height / 2);
+      cardContext.beginPath();
+      cardContext.roundRect(x, y, width, height, safeRadius);
+      if (fill) {
+        cardContext.fillStyle = fill;
+        cardContext.fill();
+      }
+      if (stroke) {
+        cardContext.strokeStyle = stroke;
+        cardContext.lineWidth = lineWidth;
+        cardContext.stroke();
       }
     }
 

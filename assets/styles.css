@@ -1354,6 +1354,172 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
   box-shadow: 0 7px 14px rgba(20, 35, 43, 0.12);
 }
 
+.share-dialog {
+  width: min(920px, calc(100% - 32px));
+  max-width: none;
+  max-height: calc(100svh - 32px);
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 0;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(20, 35, 43, 0.3);
+  color: var(--ink);
+}
+
+.share-dialog[open] {
+  animation: share-dialog-in 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.share-dialog::backdrop {
+  background: rgba(20, 35, 43, 0.66);
+}
+
+.share-dialog-shell {
+  max-height: calc(100svh - 36px);
+  overflow: auto;
+  padding: 22px;
+}
+
+.share-dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.share-dialog-header p {
+  margin: 0 0 3px;
+  color: var(--red);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.share-dialog-header h2 {
+  font-size: 1.65rem;
+}
+
+.share-dialog-close {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font: 700 1.45rem/1 Arial, sans-serif;
+}
+
+.share-dialog-close:hover,
+.share-dialog-close:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.share-preview {
+  position: relative;
+  aspect-ratio: 1200 / 630;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #edf0ed;
+}
+
+.share-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.share-preview img:not([src]) {
+  visibility: hidden;
+}
+
+.share-preview-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.share-preview-loading[hidden] {
+  display: none;
+}
+
+.share-feedback {
+  min-height: 22px;
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+}
+
+.share-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.share-dialog-actions button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.share-dialog-actions button:hover,
+.share-dialog-actions button:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.share-dialog-actions button:disabled {
+  opacity: 0.52;
+  cursor: wait;
+}
+
+.share-dialog-actions .share-action-primary {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #ffffff;
+}
+
+.share-dialog-actions .share-action-primary:hover,
+.share-dialog-actions .share-action-primary:focus-visible {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #ffffff;
+}
+
+@keyframes share-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .challenge-switcher {
   display: grid;
   gap: 9px;
@@ -1589,6 +1755,38 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
     margin-top: 10px;
   }
 
+  .share-dialog {
+    width: calc(100% - 20px);
+    max-height: calc(100svh - 20px);
+  }
+
+  .share-dialog-shell {
+    max-height: calc(100svh - 24px);
+    padding: 15px;
+  }
+
+  .share-dialog-header h2 {
+    max-width: 260px;
+    font-size: 1.3rem;
+  }
+
+  .share-preview {
+    margin-top: 14px;
+  }
+
+  .share-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .share-dialog-actions .share-action-primary {
+    grid-column: 1 / -1;
+  }
+
+  .share-dialog-actions button[hidden] + button {
+    grid-column: auto;
+  }
+
   .map-status {
     bottom: 10px;
     max-width: calc(100% - 20px);
@@ -1663,5 +1861,16 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
 
   .consent-actions button {
     flex: 1 1 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .share-dialog[open] {
+    animation: none;
+  }
+
+  .map-result-track > span,
+  .area-score-fill {
+    transition: none;
   }
 }
