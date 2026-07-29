@@ -11,6 +11,10 @@ Static geography drawing game built for search traffic around:
 
 The site has no build dependency. Core pages and long tail SEO pages are generated as plain HTML, then served with shared CSS and JavaScript.
 
+The drawing modes include a deterministic daily challenge, local streak and
+personal-best tracking, stroke undo, four-part score feedback, reveal/retry,
+searchable practice pools, and native sharing where the browser supports it.
+
 ## Generate Pages
 
 ```bash

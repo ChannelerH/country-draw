@@ -217,6 +217,25 @@ h3 {
   color: var(--ink-soft);
 }
 
+.daily-challenge-button {
+  width: 100%;
+  min-height: 42px;
+  margin: -10px 0 18px;
+  border: 1px solid rgba(212, 155, 57, 0.54);
+  border-radius: var(--radius);
+  background: rgba(212, 155, 57, 0.12);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.daily-challenge-button:hover,
+.daily-challenge-button.is-active {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: #14232b;
+}
+
 .target-label {
   color: var(--red);
   font-size: 0.72rem;
@@ -411,9 +430,50 @@ h3 {
   box-shadow: 0 8px 16px rgba(20, 35, 43, 0.12);
 }
 
+.tool-row button:disabled,
 .share-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.score-breakdown {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.score-detail {
+  display: grid;
+  gap: 6px;
+}
+
+.score-detail > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+}
+
+.score-detail strong {
+  color: var(--ink);
+}
+
+.score-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(20, 35, 43, 0.1);
+}
+
+.score-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--green);
 }
 
 .metric-stack {

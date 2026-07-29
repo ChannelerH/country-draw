@@ -103,12 +103,14 @@
   let canvas;
   let ctx;
   let score = null;
+  let scoreDetails = null;
   let revealed = false;
   let notice = "";
   let answered = false;
   let quizScore = { correct: 0, total: 0 };
   let drawingStarted = false;
   let stats = loadStats();
+  let isDailyRound = !targetSlug && modeKey !== "outline";
 
   render();
   track("game_start", {
@@ -132,6 +134,8 @@
       const mode = modes[key];
       return `<a class="mode-pill ${key === modeKey ? "is-active" : ""}" href="${mode.path}" data-mode-switch="${key}">${mode.label}</a>`;
     }).join("");
+    const modeStats = stats[modeKey] || {};
+    const dailyComplete = Boolean(modeStats.dailyScores?.[todayKey()]);
 
     return `
       <section class="app-shell" aria-label="Country Draw game">
@@ -148,10 +152,13 @@
             <h2>${currentMode.title}</h2>
             <p>${currentMode.subtitle}</p>
             <div class="target-card">
-              <span class="target-label">Current shape</span>
+              <span class="target-label">${isDailyRound ? "Today's challenge" : "Current shape"}</span>
               <strong>${escapeHtml(target.name)}</strong>
               <span>${escapeHtml(target.region)}</span>
             </div>
+            <button class="daily-challenge-button ${isDailyRound ? "is-active" : ""}" type="button" data-action="daily">
+              ${dailyComplete ? "Today's score saved" : "Play today's challenge"}
+            </button>
             <label class="target-search">
               <span>Find a ${modeKey === "flags" ? "flag" : modeKey === "states" ? "state" : "country"}</span>
               <input type="search" inputmode="search" autocomplete="off" placeholder="Search ${currentMode.pool.length} shapes" data-target-search>
@@ -178,6 +185,7 @@
             <p class="board-message" aria-live="polite">${escapeHtml(notice)}</p>
             <div class="tool-row" aria-label="Drawing controls">
               <button class="primary-action" data-action="submit">Submit drawing</button>
+              <button data-action="undo" ${strokes.length && score === null && !revealed ? "" : "disabled"}>Undo stroke</button>
               <button data-action="clear">${score === null && !revealed ? "Clear" : "Try again"}</button>
               <button data-action="new">New shape</button>
               <button data-action="reveal">Reveal</button>
@@ -187,13 +195,15 @@
             <p class="kicker">Result</p>
             <h2>${score === null ? revealed ? "Study the outline" : "Draw first" : resultLabel(score)}</h2>
             <p>${score === null ? revealed ? `Trace the major turns of ${escapeHtml(target.name)}, then choose Try again.` : "Awaiting your first outline." : resultCopy(score, target.name)}</p>
+            ${scoreBreakdownTemplate()}
             <div class="metric-stack">
               <div><span>Mode</span><strong>${currentMode.label}</strong></div>
               <div><span>Target</span><strong>${escapeHtml(target.name)}</strong></div>
               <div><span>Personal best</span><strong>${stats[modeKey]?.best || 0}/100</strong></div>
               <div><span>Completed</span><strong>${stats[modeKey]?.rounds || 0}</strong></div>
+              <div><span>Daily streak</span><strong>${stats[modeKey]?.dailyStreak || 0}</strong></div>
             </div>
-            <button class="share-button" data-action="share" ${score === null ? "disabled" : ""}>Copy result</button>
+            <button class="share-button" data-action="share" ${score === null ? "disabled" : ""}>Share result</button>
           </aside>
         </div>
       </section>
@@ -297,10 +307,12 @@
       button.addEventListener("click", function () {
         const action = button.dataset.action;
         if (action === "submit") submitDrawing();
+        if (action === "undo") undoStroke();
         if (action === "clear") clearDrawing();
         if (action === "new") nextTarget();
         if (action === "reveal") revealTarget();
         if (action === "share") copyResult();
+        if (action === "daily") startDailyChallenge();
       });
     });
   }
@@ -370,6 +382,8 @@
 
   function endStroke() {
     isDrawing = false;
+    const undo = root.querySelector("[data-action='undo']");
+    if (undo) undo.disabled = strokes.length === 0;
   }
 
   function getPoint(event) {
@@ -415,6 +429,7 @@
   function clearDrawing() {
     strokes = [];
     score = null;
+    scoreDetails = null;
     revealed = false;
     notice = "";
     drawingStarted = false;
@@ -424,6 +439,22 @@
     });
     redraw();
     render();
+  }
+
+  function undoStroke() {
+    if (!strokes.length || score !== null || revealed) return;
+    strokes.pop();
+    notice = strokes.length ? "Removed the last stroke." : "Drawing cleared.";
+    redraw();
+    const message = root.querySelector(".board-message");
+    if (message) message.textContent = notice;
+    const button = root.querySelector("[data-action='undo']");
+    if (button) button.disabled = strokes.length === 0;
+    track("drawing_undo", {
+      game_mode: modeKey,
+      target_slug: target.slug,
+      strokes_remaining: strokes.length
+    });
   }
 
   function revealTarget() {
@@ -449,15 +480,25 @@
     const user = normalizePoints(points);
     const path = root.querySelector("#target-path");
     const targetPoints = normalizePoints(samplePath(path, 180));
-    const distance = symmetricDistance(user, targetPoints);
-    const aspectPenalty = Math.abs(aspect(points) - aspect(targetPoints)) * 8;
+    const userDistance = averageNearest(user, targetPoints);
+    const referenceDistance = averageNearest(targetPoints, user);
+    const distance = (userDistance + referenceDistance) / 2;
+    const aspectDifference = Math.abs(aspect(points) - aspect(targetPoints));
+    const aspectPenalty = aspectDifference * 8;
     const raw = 100 - distance * 2.15 - aspectPenalty;
     score = Math.max(0, Math.min(100, Math.round(raw)));
+    scoreDetails = {
+      edgeMatch: qualityScore(distance, 2.15),
+      coverage: qualityScore(referenceDistance, 3),
+      precision: qualityScore(userDistance, 3),
+      proportion: Math.max(0, Math.round(100 - aspectDifference * 24))
+    };
     revealed = true;
     notice = `Compared ${points.length} drawing points with the ${target.name} reference outline.`;
     stats[modeKey] = stats[modeKey] || { rounds: 0, best: 0 };
     stats[modeKey].rounds += 1;
     stats[modeKey].best = Math.max(stats[modeKey].best, score);
+    if (isDailyRound) recordDailyCompletion(modeKey, score);
     saveStats(stats);
     track("drawing_submitted", {
       game_mode: modeKey,
@@ -487,10 +528,6 @@
         y: (p.y - box.cy) * scale + 50
       };
     });
-  }
-
-  function symmetricDistance(a, b) {
-    return (averageNearest(a, b) + averageNearest(b, a)) / 2;
   }
 
   function averageNearest(a, b) {
@@ -560,8 +597,10 @@
     }
     targetSlug = target.slug;
     score = null;
+    scoreDetails = null;
     revealed = false;
     notice = "";
+    isDailyRound = false;
     strokes = [];
     answered = false;
     drawingStarted = false;
@@ -575,16 +614,39 @@
 
   function copyResult() {
     if (score === null) return;
-    const text = `I scored ${score}/100 drawing ${target.name} on Country Draw: ${location.href}`;
-    copyText(text);
+    const streak = stats[modeKey]?.dailyStreak || 0;
+    const text = [
+      `I scored ${score}/100 drawing ${target.name} on Country Draw.`,
+      isDailyRound ? `Daily streak: ${streak}` : "",
+      location.href
+    ].filter(Boolean).join("\n");
+    const button = root.querySelector("[data-action='share']");
+    if (typeof navigator.share === "function") {
+      navigator.share({
+        title: `Country Draw: ${target.name}`,
+        text
+      }).then(function () {
+        trackShare("native");
+        if (button) button.textContent = "Shared";
+      }).catch(function () {
+        copyText(text);
+        trackShare("clipboard");
+        if (button) button.textContent = "Copied";
+      });
+    } else {
+      copyText(text);
+      trackShare("clipboard");
+      if (button) button.textContent = "Copied";
+    }
+  }
+
+  function trackShare(method) {
     track("result_shared", {
       game_mode: modeKey,
       target_slug: target.slug,
       score: score,
-      share_method: "clipboard"
+      share_method: method
     });
-    const button = root.querySelector("[data-action='share']");
-    if (button) button.textContent = "Copied";
   }
 
   function resultLabel(value) {
@@ -603,10 +665,67 @@
     return `Make a bigger sketch before submitting ${name}.`;
   }
 
+  function scoreBreakdownTemplate() {
+    if (!scoreDetails) return "";
+    const rows = [
+      ["Edge match", scoreDetails.edgeMatch],
+      ["Coverage", scoreDetails.coverage],
+      ["Stroke precision", scoreDetails.precision],
+      ["Proportion", scoreDetails.proportion]
+    ];
+    return `<div class="score-breakdown" aria-label="Score breakdown">
+      ${rows.map(function ([label, value]) {
+        return `<div class="score-detail">
+          <div><span>${label}</span><strong>${value}%</strong></div>
+          <div class="score-track"><span style="width:${value}%"></span></div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  function qualityScore(distance, weight) {
+    return Math.max(0, Math.min(100, Math.round(100 - distance * weight)));
+  }
+
+  function startDailyChallenge() {
+    const daily = dailyTarget(currentMode.pool);
+    pickTarget(daily.slug, "daily_challenge");
+  }
+
   function dailyTarget(pool) {
-    const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const stamp = todayKey().replace(/-/g, "");
     const index = Number(stamp) % pool.length;
     return pool[index];
+  }
+
+  function todayKey(date = new Date()) {
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function recordDailyCompletion(key, value) {
+    const modeStats = stats[key] = stats[key] || { rounds: 0, best: 0 };
+    modeStats.dailyScores = modeStats.dailyScores || {};
+    const today = todayKey();
+    if (Object.prototype.hasOwnProperty.call(modeStats.dailyScores, today)) return;
+    modeStats.dailyScores[today] = value;
+
+    const dates = Object.keys(modeStats.dailyScores).sort();
+    while (dates.length > 90) {
+      delete modeStats.dailyScores[dates.shift()];
+    }
+
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setHours(12, 0, 0, 0);
+    while (Object.prototype.hasOwnProperty.call(modeStats.dailyScores, todayKey(cursor))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    modeStats.dailyStreak = streak;
   }
 
   function findTarget(key, slug) {
@@ -640,8 +759,10 @@
     target = picked;
     targetSlug = picked.slug;
     score = null;
+    scoreDetails = null;
     revealed = false;
     notice = "";
+    isDailyRound = source === "daily_challenge";
     strokes = [];
     drawingStarted = false;
     track("target_changed", {
