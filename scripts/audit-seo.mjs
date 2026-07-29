@@ -10,6 +10,7 @@ const results = [];
 const errors = [];
 const titleOwners = new Map();
 const descriptionOwners = new Map();
+const keywordOwners = new Map();
 
 for (const file of files) {
   const html = readFileSync(file, "utf8");
@@ -17,6 +18,7 @@ for (const file of files) {
   const title = match(html, /<title>([\s\S]*?)<\/title>/i);
   const description = match(html, /<meta name="description" content="([^"]*)"/i);
   const primaryKeyword = match(html, /data-primary-keyword="([^"]+)"/i);
+  const secondaryKeyword = match(html, /data-secondary-keyword="([^"]+)"/i);
   const h1s = matches(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/gi).map(cleanText);
   const h2s = matches(html, /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi).map(cleanText);
   const visibleText = cleanText(
@@ -27,10 +29,12 @@ for (const file of files) {
   const words = visibleText.toLowerCase().match(/[a-z0-9]+(?:'[a-z0-9]+)?/g) || [];
   const keywordCount = countPhrase(visibleText, primaryKeyword);
   const density = words.length ? (keywordCount / words.length) * 100 : 0;
+  const secondaryKeywordCount = countPhrase(visibleText, secondaryKeyword);
+  const secondaryDensity = words.length ? (secondaryKeywordCount / words.length) * 100 : 0;
   const internalLinks = matches(html, /<a\b[^>]*href="\/[^"]*"/gi).length;
-  const minimumWords = pagePath === "index.html" || !pagePath.startsWith("draw/") && !pagePath.startsWith("draw-flags/")
-    ? 450
-    : 350;
+  const minimumWords = pagePath === "index.html"
+    ? 1200
+    : !pagePath.startsWith("draw/") && !pagePath.startsWith("draw-flags/") ? 450 : 350;
 
   check(title.length >= 20 && title.length <= 65, pagePath, `title length ${title.length} is outside 20-65`);
   check(description.length >= 100 && description.length <= 165, pagePath, `description length ${description.length} is outside 100-165`);
@@ -42,9 +46,18 @@ for (const file of files) {
   check(includesPhrase(words.slice(0, 120).join(" "), primaryKeyword), pagePath, `first 120 words miss primary keyword "${primaryKeyword}"`);
   check(keywordCount >= 2, pagePath, `primary keyword appears only ${keywordCount} time(s)`);
   check(density <= 2.5, pagePath, `primary keyword density ${density.toFixed(2)}% exceeds 2.5%`);
+  if (pagePath === "index.html") {
+    check(density >= 0.4, pagePath, `primary keyword density ${density.toFixed(2)}% is below 0.4%`);
+    check(density <= 1.5, pagePath, `primary keyword density ${density.toFixed(2)}% exceeds 1.5%`);
+  }
+  if (secondaryKeyword) {
+    check(secondaryDensity >= 0.8, pagePath, `secondary keyword density ${secondaryDensity.toFixed(2)}% is below 0.8%`);
+    check(secondaryDensity <= 1.8, pagePath, `secondary keyword density ${secondaryDensity.toFixed(2)}% exceeds 1.8%`);
+  }
   check(internalLinks >= 8, pagePath, `only ${internalLinks} internal links`);
   checkUnique(titleOwners, title, pagePath, "title");
   checkUnique(descriptionOwners, description, pagePath, "description");
+  checkUnique(keywordOwners, primaryKeyword.toLowerCase(), pagePath, "primary keyword");
 
   results.push({
     path: pagePath,
@@ -52,6 +65,8 @@ for (const file of files) {
     keyword: primaryKeyword,
     occurrences: keywordCount,
     density: `${density.toFixed(2)}%`,
+    secondary: secondaryKeyword || "-",
+    secondaryDensity: secondaryKeyword ? `${secondaryDensity.toFixed(2)}%` : "-",
     links: internalLinks
   });
 }

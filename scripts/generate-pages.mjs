@@ -86,26 +86,30 @@ const flagProfiles = {
 const pages = [
   {
     path: "/",
-    primaryKeyword: "country draw",
-    title: "Country Draw - Draw Countries From Memory",
-    description: "Play Country Draw online. Draw countries from memory, compare your sketch with the real outline, and practice map shapes, borders, states, flags, and silhouettes.",
+    primaryKeyword: "draw countries from memory",
+    secondaryKeyword: "country draw",
+    title: "Draw Countries From Memory Online | Country Draw",
+    description: "Draw countries from memory with Country Draw. Sketch borders on a real map, compare matched, missed, and extra areas, and practice 197 countries online.",
     mode: "world",
-    h1: "Country Draw",
-    intro: "Country Draw is a fast geography drawing game for people who know a map until they try to sketch it. Start with a country name, draw the outline from memory, then compare the result with the real shape.",
+    h1: "Draw Countries From Memory with Country Draw",
+    intro: "Draw countries from memory directly on a real map with Country Draw. Use surrounding borders and a capital marker as clues, sketch the missing outline, and reveal exactly which areas matched, were missed, or went beyond the real boundary.",
     faq: [
-      ["What is Country Draw?", "Country Draw is a browser game where you draw a country, state, flag, or outline from memory and compare your result with a target shape."],
-      ["Is Country Draw free?", "Yes. The game is designed to run in the browser without an account or download."],
-      ["Can I practice specific countries?", "Yes. Country and state pages can launch a specific target so you can practice one shape at a time."]
+      ["What is Country Draw?", "Country Draw is a free browser geography game where you draw countries from memory on a real map and compare your sketch with the actual geographic boundary."],
+      ["How is the drawing scored?", "The result separates the target into matched and missed areas, measures any extra area outside the boundary, and combines those differences into an accuracy score."],
+      ["How many countries can I practice?", "World mode includes 197 countries. You can also practice US states, Canadian provinces and territories, Australian states and territories, and the four UK countries."],
+      ["Can I choose a specific country?", "Yes. Use the practice selector or open a dedicated country page to repeat the same outline as often as needed."],
+      ["Does Country Draw work on mobile?", "Yes. The map supports touch drawing, zooming, and panning on phones and tablets, as well as mouse and trackpad input on desktop."],
+      ["Is an account required?", "No. Country Draw runs in the browser without an account or download, and game statistics are stored locally on your device."]
     ]
   },
   {
     path: "/draw-country/",
-    primaryKeyword: "draw countries from memory",
-    title: "Draw Country - Draw Countries From Memory Online",
-    description: "Draw countries from memory online. Practice country borders, coastlines, and silhouettes with an instant outline comparison.",
+    primaryKeyword: "country drawing game",
+    title: "Country Drawing Game - Draw Country Borders Online",
+    description: "Play a country drawing game on a real map. Practice country borders, coastlines, and silhouettes with instant matched, missed, and extra feedback.",
     mode: "world",
-    h1: "Draw Countries From Memory",
-    intro: "This country drawing game focuses on the classic map memory challenge: can you draw the country well enough that another person would recognize it?",
+    h1: "Country Drawing Game",
+    intro: "This country drawing game turns map memory into a playable border challenge: choose a place, reconstruct its missing outline, and compare your result with the real geographic boundary.",
     faq: [
       ["How does the country drawing score work?", "The score compares your normalized sketch against sampled points from the target outline."],
       ["Which countries are included?", "The searchable map drawing pool includes 197 countries with Natural Earth 1:50m boundaries, including complete MultiPolygon geometry for island groups."],
@@ -469,7 +473,7 @@ function template(page) {
 <body>
   <div data-country-draw-app data-mode="${page.mode}" data-target="${page.target || ""}"></div>
   <main class="seo-wrap">
-    <article class="seo-card" data-primary-keyword="${escapeHtml(page.primaryKeyword || "country draw")}">
+    <article class="seo-card" data-primary-keyword="${escapeHtml(page.primaryKeyword || "country draw")}"${page.secondaryKeyword ? ` data-secondary-keyword="${escapeHtml(page.secondaryKeyword)}"` : ""}>
       <p class="kicker">Geography drawing game</p>
       <h1>${escapeHtml(page.h1)}</h1>
       <p class="seo-lead">${escapeHtml(page.intro)}</p>
@@ -509,6 +513,10 @@ function guideTemplate(page) {
     return flagGuideTemplate(page);
   }
 
+  if (page.path === "/") {
+    return homeGuideTemplate();
+  }
+
   const profile = corePageProfiles[page.path];
   if (!profile) {
     return `<section class="content-section"><h2>Start a Geography Drawing Challenge</h2><p>${escapeHtml(practiceTip(page))}</p></section>`;
@@ -541,6 +549,79 @@ function guideTemplate(page) {
         <h2>A Practical Memory Routine</h2>
         <p>${escapeHtml(profile.practice)}</p>
         <p>The game works with a mouse, trackpad, finger, or stylus. Because the round is short and no account is required, you can repeat a shape immediately or return later for a quick retrieval test.</p>
+      </section>
+  `;
+}
+
+function homeGuideTemplate() {
+  return `
+      <section class="content-section">
+        <h2>How to Draw Countries From Memory</h2>
+        <p>Each Country Draw round removes one geographic outline from the map while leaving the surrounding countries, coastlines, water, and capital location available as context. Your task is to rebuild the missing boundary where it belongs. This is more demanding than recognizing a silhouette because you must remember both the shape and its position relative to neighboring places.</p>
+        <p>Begin by looking at the empty space as one large envelope. Estimate the target's northern, southern, eastern, and western limits before drawing any detailed bend. Then identify one or two anchors: a peninsula, a long coast, a straight land border, an island group, or a corner where several neighboring countries meet. Connect those anchors with a closed line and submit the result when the broad form feels complete.</p>
+        <ol class="step-list">
+          <li><strong>Read the challenge.</strong> Picture the country and locate its capital before starting the line.</li>
+          <li><strong>Set the outside limits.</strong> Estimate the width, height, direction, and position of the missing area.</li>
+          <li><strong>Draw the main border.</strong> Use a few confident curves and corners instead of chasing every small coastal detail.</li>
+          <li><strong>Submit and compare.</strong> Review matched, missed, and extra areas, then redraw the largest error.</li>
+        </ol>
+      </section>
+
+      <div class="content-grid">
+        <section class="content-section">
+          <h2>Cover and Capital Clue Modes</h2>
+          <p>Cover mode places an opaque mask over the target area. You can see the wider map and a capital marker, but the country itself is hidden. This mode gives enough geographic context to make the task approachable while still requiring you to reconstruct the border.</p>
+          <p>Capital mode removes the cover and uses the marked capital as the main location clue. Switch between the modes when you draw countries from memory: Cover is useful while learning a region, and Capital is a stronger test once you can place the country without relying on the masked space.</p>
+        </section>
+        <section class="content-section">
+          <h2>What the Accuracy Score Means</h2>
+          <p>Country Draw compares your closed geographic shape with the real target boundary. Green shows the part of the country your drawing matched. Red shows land that should have been included but was missed. Gold shows extra area drawn outside the real country. The accuracy score penalizes both missed and extra area.</p>
+          <p>Read the three measurements separately instead of focusing only on the final number. High matched area with high extra area means the drawing was too large. Low matched area with high missed area usually means it was too small, misplaced, or shaped in the wrong direction. That diagnosis gives you a specific correction for the next attempt.</p>
+        </section>
+      </div>
+
+      <section class="content-section">
+        <h2>Practice 197 Countries and More Regions</h2>
+        <p>World mode includes 197 geographic targets, from large mainland countries to archipelagos and small island states. Country Draw keeps complete MultiPolygon geometry, so places such as Indonesia, Japan, New Zealand, Norway, and the Philippines are represented by their real groups of islands rather than one simplified blob. The map boundaries use generalized geographic data suitable for a fast browser game.</p>
+        <p>The same drawing system also supports all 50 US states, 13 Canadian provinces and territories, eight Australian states and territories, and the four countries of the United Kingdom. Region tabs make it possible to stay with one map system until its shapes become familiar. Dedicated practice pages let you repeat Italy, France, Japan, Brazil, India, the United States, and other popular outlines without waiting for a random challenge.</p>
+      </section>
+
+      <div class="content-grid">
+        <section class="content-section">
+          <h2>Learn Country Shapes by Region</h2>
+          <p>A regional approach is more effective than treating every outline as an isolated picture. In South America, compare the long western edge of Chile, the taper of Argentina, the Atlantic bulge of Brazil, and the smaller northern countries. In Europe, focus on how peninsulas, seas, and neighboring borders divide a compact area into recognizable shapes.</p>
+          <p>For Africa, start with the continent's outer coasts and then learn where inland borders create straighter edges. In Asia, compare the orientation and scale of large countries before working through island chains and compact states. Oceania is useful for practicing MultiPolygon shapes because location, spacing, and direction matter as much as a single coastline.</p>
+        </section>
+        <section class="content-section">
+          <h2>Remember Landmarks, Not Every Bend</h2>
+          <p>When people first draw countries from memory, they often spend too much effort reproducing tiny coastline changes. Those details are difficult to retain and have less effect on recognition than proportion. A better plan is to remember an outline as four to six decisions: overall direction, widest point, narrowest point, one major projection, one coast or straight edge, and the placement of important islands.</p>
+          <p>Describe those decisions aloud before drawing. Italy becomes a boot below the Alpine arc with Sicily near the toe. India becomes a wide north above a triangular peninsula. Japan becomes a curved northeast-to-southwest island chain. Verbal construction rules make the next Country Draw attempt easier to retrieve than a vague mental image.</p>
+        </section>
+      </div>
+
+      <section class="content-section">
+        <h2>A Repeatable Country Drawing Routine</h2>
+        <p>Use three short attempts instead of one slow tracing session. On the first attempt, draw only the broad envelope and submit quickly. On the second, correct the largest matched, missed, or extra region shown by the result map. On the third, add one defining border turn, peninsula, coastline, or island while preserving the improved proportions.</p>
+        <p>After those attempts, switch countries and return later. Immediate repetition helps you understand the correction, while delayed repetition tests whether it entered memory. Daily challenges provide a simple retrieval habit, and free practice lets you target a difficult country without changing the shared challenge for that day. Local statistics record games, best score, average score, and daily streak on the current device.</p>
+      </section>
+
+      <div class="content-grid">
+        <section class="content-section">
+          <h2>Hard Country Outlines to Draw</h2>
+          <p>Archipelagos are difficult because each island must be placed at a believable distance and angle. Countries with long irregular coastlines, such as Norway or Croatia, are hard for a different reason: the small coastal detail can distract from the main silhouette. Very wide countries such as Russia and Canada challenge proportion, while compact inland countries can be hard to distinguish from their neighbors.</p>
+          <p>Do not avoid difficult targets. Simplify them. Draw the main landmass first, add only the largest islands, and use the surrounding map as a scale check. Country Draw is most useful when the result exposes one clear misconception that can be corrected on the next round.</p>
+        </section>
+        <section class="content-section">
+          <h2>Play on Desktop, Phone, or Tablet</h2>
+          <p>The drawing layer accepts mouse, trackpad, finger, and stylus input. Draw mode places geographic points on the map; Move mode lets you pan and zoom without adding to the border. Undo removes the previous stroke, Clear starts the outline again, and Try again resets the same target after scoring.</p>
+          <p>No account or installation is required. Country Draw loads in a modern browser, keeps game history locally, and offers a share action after each scored round. On smaller screens, submitting automatically returns to the map so the revealed boundary and score panel remain visible.</p>
+        </section>
+      </div>
+
+      <section class="content-section">
+        <h2>Why Drawing Builds Stronger Geography Recall</h2>
+        <p>Recognition quizzes ask whether a visible shape looks familiar. Drawing asks you to retrieve the shape without seeing it, organize its main parts, and place those parts in geographic context. The effort involved in retrieval makes errors obvious: you may know a country's name and capital while still misunderstanding its width, coastline, neighbors, or orientation.</p>
+        <p>Use the reveal as feedback rather than an answer to copy. Identify the single largest difference, hide the target again, and reconstruct that part from memory. Over repeated rounds, the goal is not an artistic border. It is a stable mental map that helps you recognize locations, understand neighboring countries, and recall how regions fit together.</p>
       </section>
   `;
 }
