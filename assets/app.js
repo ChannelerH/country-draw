@@ -6,16 +6,13 @@
 
   const requestedMode = root.dataset.mode || "world";
   if (requestedMode === "flags" || requestedMode === "outline") {
-    await loadScript("/assets/legacy-app.js");
+    await loadScript("/assets/legacy-app.js?v=20260729-prerender");
     return;
   }
 
-  root.innerHTML = `
-    <section class="map-game-loading" aria-live="polite">
-      <span class="map-loading-mark" aria-hidden="true"></span>
-      <strong>Loading the map...</strong>
-    </section>
-  `;
+  root.classList.add("is-hydrating");
+  const prerenderStatus = root.querySelector("[data-prerender-status]");
+  if (prerenderStatus) prerenderStatus.textContent = "Loading the interactive map...";
 
   try {
     loadStyle("/assets/vendor/maplibre-gl.css");
@@ -27,6 +24,7 @@
     new CountryMapGame(root, requestedMode);
   } catch (error) {
     console.error(error);
+    root.classList.remove("is-hydrating");
     root.innerHTML = `
       <section class="map-game-error">
         <h2>The map could not load</h2>
@@ -128,7 +126,7 @@
               <div class="challenge-heading">
                 <div>
                   <p class="map-kicker" data-challenge-label>Daily challenge</p>
-                  <h1 data-challenge-title>Draw the hidden ${regionConfig[regionKey].noun}</h1>
+                  <h2 data-challenge-title>Draw the hidden ${regionConfig[regionKey].noun}</h2>
                 </div>
                 <span class="challenge-number" data-challenge-number></span>
               </div>
@@ -212,6 +210,7 @@
 
       canvas = container.querySelector(".map-drawing-canvas");
       context = canvas.getContext("2d");
+      container.classList.remove("is-hydrating");
       bindControls();
       populatePracticeSelect();
       updateStatsView();

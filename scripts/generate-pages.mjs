@@ -471,7 +471,9 @@ function template(page) {
   <script src="/assets/analytics.js"></script>
 </head>
 <body>
-  <div data-country-draw-app data-mode="${page.mode}" data-target="${page.target || ""}"></div>
+  <div data-country-draw-app data-mode="${page.mode}" data-target="${page.target || ""}">
+    ${gamePrerenderTemplate(page)}
+  </div>
   <main class="seo-wrap">
     <article class="seo-card" data-primary-keyword="${escapeHtml(page.primaryKeyword || "country draw")}"${page.secondaryKeyword ? ` data-secondary-keyword="${escapeHtml(page.secondaryKeyword)}"` : ""}>
       <p class="kicker">Geography drawing game</p>
@@ -499,10 +501,118 @@ function template(page) {
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
   ${["flags", "outline"].includes(page.mode) ? '<script src="/assets/country-shapes.js" defer></script>' : ""}
-  <script src="/assets/app.js?v=20260729-share-image" defer></script>
+  <script src="/assets/app.js?v=20260729-prerender" defer></script>
 </body>
 </html>
 `;
+}
+
+function gamePrerenderTemplate(page) {
+  if (page.mode === "flags" || page.mode === "outline") {
+    return `
+      <section class="map-game-loading" data-prerender-game aria-label="${escapeHtml(page.h1)}" aria-busy="true">
+        <span class="map-loading-mark" aria-hidden="true"></span>
+        <h2>${escapeHtml(page.h1)}</h2>
+        <p>${escapeHtml(page.intro)}</p>
+        <strong data-prerender-status>Loading the interactive game...</strong>
+      </section>
+    `;
+  }
+
+  const isStates = page.mode === "states";
+  const noun = isStates ? "state" : "country";
+  const targetName = page.name || "";
+  const challengeTitle = targetName
+    ? `Draw ${targetName} from memory`
+    : `Draw the hidden ${noun}`;
+  const challengeLabel = targetName ? "Focused practice" : "Daily geography challenge";
+  const practiceOption = targetName
+    ? targetName
+    : `Choose a ${noun} after the map loads`;
+
+  return `
+    <section class="map-game-shell map-game-prerender" data-prerender-game aria-label="Country Draw map game" aria-busy="true">
+      <header class="map-game-header">
+        <a class="map-brand" href="/" aria-label="Country Draw home">
+          <span class="map-brand-mark" aria-hidden="true"></span>
+          <span>Country Draw</span>
+        </a>
+        <nav class="region-tabs" aria-label="Challenge regions">
+          <button type="button"${!isStates ? ' class="is-active"' : ""} disabled>World</button>
+          <button type="button"${isStates ? ' class="is-active"' : ""} disabled>US States</button>
+          <button type="button" disabled>Canada</button>
+          <button type="button" disabled>Australia</button>
+          <button type="button" disabled>UK</button>
+        </nav>
+      </header>
+
+      <div class="map-game-workspace">
+        <section class="map-stage" aria-label="Interactive drawing map">
+          <div class="prerender-map" role="img" aria-label="Interactive geography map loading">
+            <span class="map-loading-mark" aria-hidden="true"></span>
+            <strong data-prerender-status>Loading the interactive map...</strong>
+            <p>Draw ${isStates ? "US states" : "countries"} from memory, then compare matched, missed, and extra map areas.</p>
+          </div>
+
+          <div class="map-toolbox" aria-label="Map drawing tools">
+            <div class="map-tool-segment">
+              <button type="button" class="is-active" disabled>Draw</button>
+              <button type="button" disabled>Move</button>
+            </div>
+            <button type="button" disabled>Undo</button>
+            <button type="button" disabled>Clear</button>
+          </div>
+
+          <div class="map-status">The drawing map becomes interactive after loading.</div>
+        </section>
+
+        <aside class="game-control-panel">
+          <div class="challenge-heading">
+            <div>
+              <p class="map-kicker">${escapeHtml(challengeLabel)}</p>
+              <h2>${escapeHtml(challengeTitle)}</h2>
+            </div>
+          </div>
+
+          <div class="game-mode-control">
+            <span>Clue mode</span>
+            <div class="mode-segment" role="group" aria-label="Clue mode">
+              <button type="button" class="is-active" disabled>Cover</button>
+              <button type="button" disabled>Capital</button>
+            </div>
+          </div>
+
+          <div class="clue-panel">
+            <span>Map clue</span>
+            <strong>The target area is covered</strong>
+            <p>Use surrounding borders and the capital marker to reconstruct the missing ${noun} outline.</p>
+          </div>
+
+          <div class="primary-controls">
+            <button type="button" class="map-primary-action" disabled>Submit drawing</button>
+          </div>
+
+          <div class="challenge-switcher">
+            <button type="button" class="${targetName ? "" : "is-active"}" disabled>Today's challenge</button>
+            <label>
+              <span>Practice a specific ${noun}</span>
+              <select disabled aria-label="Practice a specific ${noun}">
+                <option>${escapeHtml(practiceOption)}</option>
+              </select>
+            </label>
+            <button type="button" disabled>Start practice</button>
+          </div>
+
+          <div class="map-stat-grid" aria-label="Game statistics">
+            <div><span>Games</span><strong>0</strong></div>
+            <div><span>Best</span><strong>0%</strong></div>
+            <div><span>Average</span><strong>0%</strong></div>
+            <div><span>Daily streak</span><strong>0</strong></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  `;
 }
 
 function guideTemplate(page) {

@@ -172,7 +172,7 @@
             <div class="board-head">
               <div>
                 <p class="kicker">Draw from memory</p>
-                <h1>${escapeHtml(target.name)}</h1>
+                <h2>${escapeHtml(target.name)}</h2>
               </div>
               <div class="score-chip" aria-live="polite">${score === null ? revealed ? "Reference" : "No score yet" : score + "/100"}</div>
             </div>
@@ -231,7 +231,7 @@
             <div class="board-head">
               <div>
                 <p class="kicker">Country outline quiz</p>
-                <h1>Guess the silhouette</h1>
+                <h2>Guess the silhouette</h2>
               </div>
               <div class="score-chip" data-quiz-score aria-live="polite">${quizScore.correct}/${quizScore.total}</div>
             </div>

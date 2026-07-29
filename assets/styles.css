@@ -802,6 +802,39 @@ h3 {
   text-align: center;
 }
 
+.map-game-prerender {
+  min-height: 100svh;
+}
+
+.prerender-map {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px;
+  background: #dce4df;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.prerender-map strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.prerender-map p {
+  max-width: 46ch;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.map-game-prerender button:disabled,
+.map-game-prerender select:disabled {
+  cursor: wait;
+}
+
 .map-loading-mark {
   width: 48px;
   height: 48px;
@@ -1175,7 +1208,7 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
   text-transform: uppercase;
 }
 
-.challenge-heading h1 {
+.challenge-heading h2 {
   max-width: 280px;
   font-size: clamp(1.8rem, 3vw, 2.65rem);
 }
@@ -1798,7 +1831,7 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
     padding: 20px 16px 26px;
   }
 
-  .challenge-heading h1 {
+  .challenge-heading h2 {
     font-size: 1.9rem;
   }
 

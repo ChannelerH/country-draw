@@ -28,7 +28,16 @@
   <script src="/assets/analytics.js"></script>
 </head>
 <body>
-  <div data-country-draw-app data-mode="flags" data-target="united-states"></div>
+  <div data-country-draw-app data-mode="flags" data-target="united-states">
+
+      <section class="map-game-loading" data-prerender-game aria-label="Draw The United States Flag From Memory" aria-busy="true">
+        <span class="map-loading-mark" aria-hidden="true"></span>
+        <h2>Draw The United States Flag From Memory</h2>
+        <p>This flag page starts the flag drawing mode with the United States flag selected for focused memory practice.</p>
+        <strong data-prerender-status>Loading the interactive game...</strong>
+      </section>
+
+  </div>
   <main class="seo-wrap">
     <article class="seo-card" data-primary-keyword="draw the United States flag">
       <p class="kicker">Geography drawing game</p>
@@ -92,6 +101,6 @@
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
   <script src="/assets/country-shapes.js" defer></script>
-  <script src="/assets/app.js?v=20260729-share-image" defer></script>
+  <script src="/assets/app.js?v=20260729-prerender" defer></script>
 </body>
 </html>
