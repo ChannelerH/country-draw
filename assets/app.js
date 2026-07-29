@@ -65,6 +65,7 @@
     let capitalMarker = null;
     let shareBlob = null;
     let shareObjectUrl = "";
+    let shareImageAction = "none";
     let stats = loadStats();
 
     renderShell();
@@ -200,7 +201,7 @@
               <p class="share-feedback" data-share-feedback aria-live="polite">Your score card includes the result map and all four score values.</p>
 
               <div class="share-dialog-actions">
-                <button type="button" class="share-action-primary" data-action="native-share">Share image</button>
+                <button type="button" class="share-action-primary" data-action="native-share">Share PNG</button>
                 <button type="button" data-action="copy-result">Copy result</button>
                 <button type="button" data-action="download-result">Download PNG</button>
               </div>
@@ -820,7 +821,7 @@
       loading.hidden = false;
       loading.textContent = "Building your score card...";
       feedback.textContent = "Your score card includes the result map and all four score values.";
-      nativeButton.hidden = typeof navigator.share !== "function";
+      nativeButton.hidden = true;
       setShareActionsDisabled(true);
       dialog.showModal();
 
@@ -829,6 +830,7 @@
         shareObjectUrl = URL.createObjectURL(shareBlob);
         preview.src = shareObjectUrl;
         await preview.decode().catch(() => {});
+        configureShareImageAction();
         loading.hidden = true;
         setShareActionsDisabled(false);
         track("share_preview_opened", {
@@ -853,8 +855,12 @@
       if (shareObjectUrl) URL.revokeObjectURL(shareObjectUrl);
       shareObjectUrl = "";
       shareBlob = null;
+      shareImageAction = "none";
       const preview = container.querySelector("[data-share-preview]");
       if (preview) preview.removeAttribute("src");
+      const nativeButton = container.querySelector("[data-action='native-share']");
+      nativeButton.hidden = true;
+      nativeButton.textContent = "Share PNG";
       container.querySelectorAll("[data-action='copy-result'], [data-action='download-result']").forEach((button) => {
         button.textContent = button.dataset.action === "copy-result" ? "Copy result" : "Download PNG";
       });
@@ -876,28 +882,86 @@
       return lines.join("\n");
     }
 
+    function shareImageFile() {
+      return new File([shareBlob], shareFileName(), {
+        type: "image/png",
+        lastModified: Date.now()
+      });
+    }
+
+    function canCopyImage() {
+      return typeof window.ClipboardItem === "function"
+        && typeof navigator.clipboard?.write === "function";
+    }
+
+    function configureShareImageAction() {
+      const button = container.querySelector("[data-action='native-share']");
+      const fileData = { files: [shareImageFile()] };
+      const canShareFile = typeof navigator.share === "function"
+        && typeof navigator.canShare === "function"
+        && navigator.canShare(fileData);
+
+      if (canShareFile) {
+        shareImageAction = "native";
+        button.textContent = "Share PNG";
+        button.hidden = false;
+        return;
+      }
+
+      if (canCopyImage()) {
+        shareImageAction = "clipboard";
+        button.textContent = "Copy image";
+        button.hidden = false;
+        setShareFeedback("This browser cannot send files to the share menu. Copy the PNG, then paste it into your app.");
+        return;
+      }
+
+      shareImageAction = "none";
+      button.hidden = true;
+      setShareFeedback("Download the PNG to share the score card.");
+    }
+
     async function shareResultImage() {
-      if (!shareBlob || typeof navigator.share !== "function") return;
-      const file = new File([shareBlob], shareFileName(), { type: "image/png" });
-      const data = {
-        title: `${target.properties.name} | Country Draw`,
-        text: shareText(false),
-        url: location.href
-      };
+      if (!shareBlob) return;
+      const button = container.querySelector("[data-action='native-share']");
+
+      if (shareImageAction === "clipboard") {
+        await copyResultImage(button);
+        return;
+      }
+
+      if (shareImageAction !== "native") return;
+      const data = { files: [shareImageFile()] };
       try {
-        if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
-          data.files = [file];
-        }
         await navigator.share(data);
-        setShareFeedback("Shared successfully.");
+        setShareFeedback("PNG shared successfully.");
         track("result_shared", {
-          share_method: data.files ? "native_image" : "native_text",
+          share_method: "native_image",
           score: result.accuracy
         });
       } catch (error) {
         if (error.name !== "AbortError") {
-          setShareFeedback("Sharing was not available. Copy the result or download the PNG instead.");
+          if (canCopyImage()) {
+            shareImageAction = "clipboard";
+            button.textContent = "Copy image";
+            setShareFeedback("The system could not share the file. Copy the PNG, then paste it into your app.");
+          } else {
+            button.hidden = true;
+            setShareFeedback("The system could not share the file. Download the PNG instead.");
+          }
         }
+      }
+    }
+
+    async function copyResultImage(button) {
+      try {
+        const item = new ClipboardItem({ "image/png": shareBlob });
+        await navigator.clipboard.write([item]);
+        button.textContent = "Image copied";
+        setShareFeedback("PNG copied. Paste it into Messages, email, or a social app.");
+        track("result_shared", { share_method: "clipboard_image", score: result.accuracy });
+      } catch {
+        setShareFeedback("Image clipboard access was blocked. Download the PNG instead.");
       }
     }
 
