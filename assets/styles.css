@@ -1497,6 +1497,87 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
   font-size: 0.86rem;
 }
 
+.share-destination-block {
+  margin-top: 14px;
+}
+
+.share-action-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.share-destination-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.share-destination-grid button {
+  display: flex;
+  min-width: 0;
+  min-height: 68px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.share-destination-grid button:hover,
+.share-destination-grid button:focus-visible {
+  border-color: var(--blue);
+  box-shadow: 0 5px 14px rgba(20, 35, 43, 0.1);
+}
+
+.share-destination-grid button:disabled {
+  opacity: 0.52;
+  cursor: wait;
+}
+
+.share-destination-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.share-destination-mark.is-facebook {
+  background: #1877f2;
+}
+
+.share-destination-mark.is-reddit {
+  background: #e94415;
+}
+
+.share-destination-mark.is-whatsapp {
+  background: #128c6a;
+}
+
+.share-destination-mark.is-email {
+  background: #b83b35;
+}
+
+.share-destination-mark.is-copy {
+  background: #59666d;
+  font-size: 0.58rem;
+}
+
 .share-dialog-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1810,6 +1891,17 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
   .share-dialog-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .share-destination-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .share-destination-grid button {
+    min-height: 62px;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.72rem;
   }
 
   .share-dialog-actions .share-action-primary {

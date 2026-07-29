@@ -198,6 +198,18 @@
 
               <p class="share-feedback" data-share-feedback aria-live="polite">Your score card includes the result map and all four score values.</p>
 
+              <div class="share-destination-block">
+                <span class="share-action-label">Share your score</span>
+                <div class="share-destination-grid">
+                  ${shareDestinationButton("x", "X", "X")}
+                  ${shareDestinationButton("facebook", "f", "Facebook")}
+                  ${shareDestinationButton("reddit", "r", "Reddit")}
+                  ${shareDestinationButton("whatsapp", "W", "WhatsApp")}
+                  ${shareDestinationButton("email", "@", "Email")}
+                  ${shareDestinationButton("copy", "URL", "Copy link")}
+                </div>
+              </div>
+
               <div class="share-dialog-actions">
                 <button type="button" data-action="native-share">Share PNG</button>
                 <button type="button" data-action="copy-image">Copy image</button>
@@ -322,6 +334,11 @@
         copyResultImage(container.querySelector("[data-action='copy-image']"));
       });
       container.querySelector("[data-action='download-result']").addEventListener("click", downloadResultImage);
+      container.querySelectorAll("[data-share-destination]").forEach((button) => {
+        button.addEventListener("click", function () {
+          shareToDestination(button);
+        });
+      });
       const shareDialog = container.querySelector("[data-share-dialog]");
       shareDialog.addEventListener("click", function (event) {
         if (event.target === shareDialog) closeShareDialog();
@@ -822,7 +839,7 @@
       preview.alt = `${target.properties.name} Country Draw score card showing ${result.accuracy}% accuracy`;
       loading.hidden = false;
       loading.textContent = "Building your score card...";
-      feedback.textContent = "Your score card includes the result map and all four score values.";
+      feedback.textContent = "Choose where to share your score.";
       nativeButton.hidden = true;
       copyImageButton.hidden = true;
       setShareActionsDisabled(true);
@@ -869,13 +886,35 @@
       copyImageButton.hidden = true;
       copyImageButton.textContent = "Copy image";
       copyImageButton.classList.remove("share-action-primary");
-      container.querySelector("[data-action='download-result']").textContent = "Download PNG";
+      const downloadButton = container.querySelector("[data-action='download-result']");
+      downloadButton.textContent = "Download PNG";
+      downloadButton.classList.remove("share-action-primary");
+      container.querySelector("[data-share-destination='copy'] .share-destination-label").textContent = "Copy link";
     }
 
     function setShareActionsDisabled(disabled) {
-      container.querySelectorAll(".share-dialog-actions button").forEach((button) => {
+      container.querySelectorAll(".share-dialog-actions button, [data-share-destination]").forEach((button) => {
         button.disabled = disabled;
       });
+    }
+
+    function shareText(includeUrl = true, source = "shared") {
+      const lines = [
+        `I scored ${result.accuracy}% drawing ${target.properties.name} from memory on Country Draw.`,
+        `Matched ${result.matched}% | Missed ${result.missedPercent}% | Extra ${result.extraPercent}%`
+      ];
+      if (includeUrl) lines.push(trackedShareUrl(source));
+      return lines.join("\n");
+    }
+
+    function trackedShareUrl(source) {
+      const url = new URL(location.href);
+      url.search = "";
+      url.hash = "";
+      url.searchParams.set("utm_source", source);
+      url.searchParams.set("utm_medium", "social");
+      url.searchParams.set("utm_campaign", "score_share");
+      return url.toString();
     }
 
     function shareImageFile() {
@@ -893,16 +932,16 @@
     function configureShareImageAction() {
       const nativeButton = container.querySelector("[data-action='native-share']");
       const copyImageButton = container.querySelector("[data-action='copy-image']");
+      const downloadButton = container.querySelector("[data-action='download-result']");
       const fileData = { files: [shareImageFile()] };
       const canShareFile = typeof navigator.share === "function"
         && typeof navigator.canShare === "function"
         && navigator.canShare(fileData);
       const canCopyFile = canCopyImage();
-      const prefersCopy = canCopyFile
-        && typeof window.matchMedia === "function"
-        && window.matchMedia("(pointer: fine)").matches;
+      const prefersNative = typeof window.matchMedia === "function"
+        && window.matchMedia("(pointer: coarse)").matches;
 
-      if (canShareFile) {
+      if (canShareFile && prefersNative) {
         shareImageAction = "native";
         nativeButton.hidden = false;
       }
@@ -911,23 +950,21 @@
         copyImageButton.hidden = false;
       }
 
-      if (prefersCopy || !canShareFile) {
-        copyImageButton.classList.toggle("share-action-primary", canCopyFile);
-      } else {
+      if (canShareFile && prefersNative) {
         nativeButton.classList.add("share-action-primary");
+      } else if (canCopyFile) {
+        copyImageButton.classList.add("share-action-primary");
+      } else {
+        downloadButton.classList.add("share-action-primary");
       }
 
-      if (canShareFile && canCopyFile) {
-        setShareFeedback(prefersCopy
-          ? "Copy the PNG to paste it anywhere, or use the system share menu."
-          : "Share the PNG with an app, copy it, or save it to your device.");
-      } else if (canCopyFile) {
-        setShareFeedback("Copy the PNG, then paste it into a chat, post, email, or document.");
-      } else if (canShareFile) {
+      if (canCopyFile) {
+        setShareFeedback("Choose a destination. The PNG will be copied so you can paste it into your post.");
+      } else if (canShareFile && prefersNative) {
         setShareFeedback("Share the PNG with an app installed on this device.");
       } else {
         shareImageAction = "none";
-        setShareFeedback("Download the PNG to share the score card.");
+        setShareFeedback("Choose a destination to share the score and link, or download the PNG.");
       }
     }
 
@@ -962,14 +999,68 @@
 
     async function copyResultImage(button) {
       try {
-        const item = new ClipboardItem({ "image/png": shareBlob });
-        await navigator.clipboard.write([item]);
+        await writeResultImageToClipboard();
         button.textContent = "Image copied";
         setShareFeedback("PNG copied. Paste it into Messages, email, or a social app.");
         track("result_shared", { share_method: "clipboard_image", score: result.accuracy });
       } catch {
         setShareFeedback("Image clipboard access was blocked. Download the PNG instead.");
       }
+    }
+
+    async function writeResultImageToClipboard() {
+      const item = new ClipboardItem({ "image/png": shareBlob });
+      await navigator.clipboard.write([item]);
+    }
+
+    async function shareToDestination(button) {
+      const destination = button.dataset.shareDestination;
+      if (destination === "copy") {
+        try {
+          await copyText(shareText(true, "copy"));
+          button.querySelector(".share-destination-label").textContent = "Copied";
+          setShareFeedback("Score and link copied.");
+          track("result_shared", { share_method: "copy_link", score: result.accuracy });
+          setTimeout(() => {
+            const label = button.querySelector(".share-destination-label");
+            if (label) label.textContent = "Copy link";
+          }, 1600);
+        } catch {
+          setShareFeedback("Clipboard access was blocked.");
+        }
+        return;
+      }
+
+      const destinationUrl = buildDestinationUrl(destination);
+      window.open(destinationUrl, "_blank", "noopener,noreferrer");
+      let imageCopied = false;
+      if (canCopyImage()) {
+        try {
+          await writeResultImageToClipboard();
+          imageCopied = true;
+        } catch {
+          imageCopied = false;
+        }
+      }
+      const name = button.querySelector(".share-destination-label").textContent;
+      setShareFeedback(imageCopied
+        ? `${name} opened. The PNG is copied; paste it into your post.`
+        : `${name} opened with your score and link.`);
+      track("result_shared", { share_method: destination, score: result.accuracy });
+    }
+
+    function buildDestinationUrl(destination) {
+      const url = trackedShareUrl(destination);
+      const text = shareText(false);
+      const title = `My ${target.properties.name} Country Draw score: ${result.accuracy}%`;
+      const destinations = {
+        x: `https://twitter.com/intent/tweet?${new URLSearchParams({ text, url })}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?${new URLSearchParams({ u: url, quote: text })}`,
+        reddit: `https://www.reddit.com/submit?${new URLSearchParams({ url, title })}`,
+        whatsapp: `https://wa.me/?${new URLSearchParams({ text: `${text}\n${url}` })}`,
+        email: `mailto:?${new URLSearchParams({ subject: title, body: `${text}\n\n${url}` })}`
+      };
+      return destinations[destination];
     }
 
     function downloadResultImage() {
@@ -1455,6 +1546,30 @@
     link.rel = "stylesheet";
     link.href = source;
     document.head.appendChild(link);
+  }
+
+  function shareDestinationButton(destination, mark, label) {
+    return `
+      <button type="button" data-share-destination="${destination}" aria-label="Share via ${label}">
+        <span class="share-destination-mark is-${destination}" aria-hidden="true">${mark}</span>
+        <span class="share-destination-label">${label}</span>
+      </button>
+    `;
+  }
+
+  async function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.style.position = "fixed";
+    field.style.opacity = "0";
+    document.body.appendChild(field);
+    field.select();
+    document.execCommand("copy");
+    field.remove();
   }
 
 })();
