@@ -499,7 +499,7 @@ function template(page) {
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
   ${["flags", "outline"].includes(page.mode) ? '<script src="/assets/country-shapes.js" defer></script>' : ""}
-  <script src="/assets/app.js" defer></script>
+  <script src="/assets/app.js?v=20260729-share-image" defer></script>
 </body>
 </html>
 `;
