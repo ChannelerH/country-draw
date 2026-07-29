@@ -11,9 +11,10 @@ Static geography drawing game built for search traffic around:
 
 The site has no build dependency. Core pages and long tail SEO pages are generated as plain HTML, then served with shared CSS and JavaScript.
 
-The drawing modes include a deterministic daily challenge, local streak and
-personal-best tracking, stroke undo, four-part score feedback, reveal/retry,
-searchable practice pools, and native sharing where the browser supports it.
+The map drawing modes include deterministic daily challenges, Cover and
+Capital clues, local streak and personal-best tracking, stroke undo, geographic
+area scoring, matched/missed/extra result overlays, searchable practice pools,
+and native sharing where the browser supports it.
 
 ## Generate Pages
 
@@ -48,6 +49,16 @@ node scripts/generate-country-shapes.mjs
 The generated `assets/country-shapes.js` file is committed so the production
 game does not need a third-party request at runtime.
 
+The primary map game uses Natural Earth 1:50m country and administrative
+boundaries, plus CC BY 4.0 UK boundaries from geoBoundaries:
+
+```bash
+node scripts/generate-map-data.mjs
+```
+
+The generated `assets/map-data.js`, MapLibre, and Turf bundles are committed.
+Only the OpenFreeMap basemap tiles are loaded at runtime.
+
 ## Local Preview
 
 ```bash
@@ -65,6 +76,6 @@ Add new targets in two places:
 1. `assets/app.js` for playable shapes.
 2. `scripts/generate-pages.mjs` for generated SEO pages.
 
-Keep target pages playable. The game exposes 172 searchable country and
-territory outlines, while dedicated long-tail pages are limited to targets
-with reviewed, unique practice guidance.
+Keep target pages playable. The map game exposes 197 searchable countries plus
+US, Canadian, Australian, and UK subdivisions. Dedicated long-tail pages remain
+limited to targets with reviewed, unique practice guidance.

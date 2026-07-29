@@ -108,7 +108,7 @@ const pages = [
     intro: "This country drawing game focuses on the classic map memory challenge: can you draw the country well enough that another person would recognize it?",
     faq: [
       ["How does the country drawing score work?", "The score compares your normalized sketch against sampled points from the target outline."],
-      ["Which countries are included?", "The searchable drawing pool includes 172 country and territory outlines generated from Natural Earth boundary data."],
+      ["Which countries are included?", "The searchable map drawing pool includes 197 countries with Natural Earth 1:50m boundaries, including complete MultiPolygon geometry for island groups."],
       ["Can this help with geography practice?", "Yes. Repeating the same outline helps you remember proportion, coastline, and border features."]
     ]
   },
@@ -135,7 +135,7 @@ const pages = [
     h1: "Draw Country Borders",
     intro: "Country borders are harder to remember than country names. This mode gives each outline enough space for repeated geography practice.",
     faq: [
-      ["Are borders exact?", "The targets use simplified Natural Earth boundary data, preserving the major geographic shape while keeping the game fast."],
+      ["Are borders exact?", "The game uses Natural Earth 1:50m geographic boundaries for scoring and reveal layers. They are map-grade generalized borders rather than hand-drawn SVG approximations."],
       ["Can I use this for study?", "Yes. It works best as repeated recall practice before checking a real map."],
       ["Will more regions be added?", "The static page structure supports more countries, states, and region packs."]
     ]
@@ -214,7 +214,7 @@ const pages = [
 
 const corePageProfiles = {
   "/": {
-    play: "Country Draw gives you a country name and an empty canvas. Sketch the border without looking at a map, submit the drawing, and reveal the reference outline. The comparison makes gaps in your mental map obvious: a peninsula may point in the wrong direction, a coastline may be too straight, or the whole country may be too wide.",
+    play: "Country Draw places a hidden country on a real map and marks its capital. Reconstruct the missing border from geographic context, submit the drawing, and compare matched, missed, and extra areas with the real boundary.",
     focus: "The main country drawing mode trains recall rather than recognition. Outline quiz mode reverses the task and asks you to identify a silhouette. US state and flag modes keep the same short practice loop while changing the visual details you need to remember.",
     scoring: "The score is feedback, not a geography grade. It rewards a sketch that follows the target's broad proportions and major turns. Small coastal details matter less than the overall width, height, direction, and placement of distinctive parts.",
     practice: "Choose one familiar country first, draw it three times, and check the same two or three landmarks after every attempt. Then switch to a nearby or similarly shaped country. That contrast is more useful than drawing many random outlines only once."
@@ -492,9 +492,9 @@ function template(page) {
   </main>
   <footer class="site-footer">
     Country Draw is a free browser geography game.
-    <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Map data</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
+    <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
-  <script src="/assets/country-shapes.js" defer></script>
+  ${["flags", "outline"].includes(page.mode) ? '<script src="/assets/country-shapes.js" defer></script>' : ""}
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
@@ -521,7 +521,7 @@ function guideTemplate(page) {
         <ol class="step-list">
           <li><strong>Read the prompt.</strong> Picture the full outline before touching the canvas.</li>
           <li><strong>Draw the large form.</strong> Set width, height, and direction before small details.</li>
-          <li><strong>Submit and reveal.</strong> Compare your sketch with the reference silhouette.</li>
+          <li><strong>Submit and reveal.</strong> Compare matched, missed, and extra map areas.</li>
           <li><strong>Correct one error.</strong> Redraw the biggest mismatch while it is still fresh.</li>
         </ol>
       </section>
