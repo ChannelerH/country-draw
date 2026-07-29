@@ -466,7 +466,7 @@ function template(page) {
   <meta name="twitter:description" content="${escapeHtml(page.description)}">
   <meta name="twitter:image" content="${socialImage}">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260729-map-poster">
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   <script src="/assets/analytics.js"></script>
 </head>
@@ -501,7 +501,7 @@ function template(page) {
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
   ${["flags", "outline"].includes(page.mode) ? '<script src="/assets/country-shapes.js" defer></script>' : ""}
-  <script src="/assets/app.js?v=20260729-share-menu" defer></script>
+  <script src="/assets/app.js?v=20260729-map-poster" defer></script>
 </body>
 </html>
 `;
@@ -529,6 +529,18 @@ function gamePrerenderTemplate(page) {
   const practiceOption = targetName
     ? targetName
     : `Choose a ${noun} after the map loads`;
+  const mapPoster = targetName
+    ? isStates
+      ? `/assets/map-prerender/states/${page.target}.webp`
+      : `/assets/map-prerender/world/${page.target}.webp`
+    : isStates
+      ? "/assets/map-prerender-states.webp"
+      : "/assets/map-prerender-world.webp";
+  const mapPosterAlt = targetName
+    ? `Country Draw map challenge with ${targetName} covered for drawing from memory`
+    : isStates
+      ? "Country Draw US States map challenge showing a covered state"
+      : "Country Draw world map challenge showing a covered country in Africa";
 
   return `
     <section class="map-game-shell map-game-prerender" data-prerender-game aria-label="Country Draw map game" aria-busy="true">
@@ -549,9 +561,7 @@ function gamePrerenderTemplate(page) {
       <div class="map-game-workspace">
         <section class="map-stage" aria-label="Interactive drawing map">
           <div class="prerender-map" role="img" aria-label="Interactive geography map loading">
-            <span class="map-loading-mark" aria-hidden="true"></span>
-            <strong data-prerender-status>Loading the interactive map...</strong>
-            <p>Draw ${isStates ? "US states" : "countries"} from memory, then compare matched, missed, and extra map areas.</p>
+            <img class="prerender-map-poster" src="${mapPoster}" width="1230" height="834" alt="${mapPosterAlt}" fetchpriority="high" decoding="async">
           </div>
 
           <div class="map-toolbox" aria-label="Map drawing tools">

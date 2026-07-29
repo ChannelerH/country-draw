@@ -45,6 +45,8 @@
     const emptyCollection = () => ({ type: "FeatureCollection", features: [] });
     const mapData = window.COUNTRY_DRAW_MAP_DATA;
     const dedicatedSlug = container.dataset.target || "";
+    const prerenderPoster = container.querySelector(".prerender-map-poster");
+    const prerenderPosterSrc = prerenderPoster?.currentSrc || prerenderPoster?.src || "";
 
     let regionKey = pageMode === "states" ? "us" : "world";
     let gameMode = localStorage.getItem("country-draw-map-mode") === "capital" ? "capital" : "cover";
@@ -89,6 +91,7 @@
           <div class="map-game-workspace">
             <section class="map-stage" aria-label="Drawing map">
               <div id="country-map"></div>
+              <img class="map-hydration-poster" alt="" aria-hidden="true">
               <canvas class="map-drawing-canvas" aria-label="Draw the missing border"></canvas>
 
               <section class="map-result-overlay" data-map-result hidden aria-label="Drawing result" aria-live="polite">
@@ -222,6 +225,9 @@
 
       canvas = container.querySelector(".map-drawing-canvas");
       context = canvas.getContext("2d");
+      const hydrationPoster = container.querySelector(".map-hydration-poster");
+      if (prerenderPosterSrc) hydrationPoster.src = prerenderPosterSrc;
+      else hydrationPoster.remove();
       container.classList.remove("is-hydrating");
       bindControls();
       populatePracticeSelect();
@@ -243,6 +249,7 @@
       });
       map.addControl(new window.maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
       map.on("load", function () {
+        container.querySelector(".map-hydration-poster")?.remove();
         softenBaseMap();
         addGameLayers();
         resizeCanvas();

@@ -23,7 +23,7 @@
   <meta name="twitter:description" content="Draw France from memory online. Practice the outline, compare your sketch, and improve your country shape recall.">
   <meta name="twitter:image" content="https://countrydraw.games/assets/og-country-draw.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260729-map-poster">
   <script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebApplication","name":"Country Draw","url":"https://countrydraw.games/draw/france/","applicationCategory":"GameApplication","operatingSystem":"Any","description":"Draw France from memory online. Practice the outline, compare your sketch, and improve your country shape recall.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can I draw France directly?","acceptedAnswer":{"@type":"Answer","text":"Yes. This page opens the drawing game with France selected as the first challenge."}},{"@type":"Question","name":"Why practice France alone?","acceptedAnswer":{"@type":"Answer","text":"Single country pages are useful when you want repeated recall on one outline before moving to a full map quiz."}},{"@type":"Question","name":"Can I switch to another country?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use the challenge list or the new shape button inside the game."}}]},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Country Draw","item":"https://countrydraw.games/"},{"@type":"ListItem","position":2,"name":"Draw France From Memory","item":"https://countrydraw.games/draw/france/"}]},{"@context":"https://schema.org","@type":"WebSite","name":"Country Draw","url":"https://countrydraw.games/","inLanguage":"en"}]</script>
   <script src="/assets/analytics.js"></script>
 </head>
@@ -48,9 +48,7 @@
       <div class="map-game-workspace">
         <section class="map-stage" aria-label="Interactive drawing map">
           <div class="prerender-map" role="img" aria-label="Interactive geography map loading">
-            <span class="map-loading-mark" aria-hidden="true"></span>
-            <strong data-prerender-status>Loading the interactive map...</strong>
-            <p>Draw countries from memory, then compare matched, missed, and extra map areas.</p>
+            <img class="prerender-map-poster" src="/assets/map-prerender/world/france.webp" width="1230" height="834" alt="Country Draw map challenge with France covered for drawing from memory" fetchpriority="high" decoding="async">
           </div>
 
           <div class="map-toolbox" aria-label="Map drawing tools">
@@ -176,6 +174,6 @@
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
 
-  <script src="/assets/app.js?v=20260729-share-menu" defer></script>
+  <script src="/assets/app.js?v=20260729-map-poster" defer></script>
 </body>
 </html>

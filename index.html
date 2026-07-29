@@ -23,7 +23,7 @@
   <meta name="twitter:description" content="Draw countries from memory with Country Draw. Sketch borders on a real map, compare matched, missed, and extra areas, and practice 197 countries online.">
   <meta name="twitter:image" content="https://countrydraw.games/assets/og-country-draw.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260729-map-poster">
   <script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebApplication","name":"Country Draw","url":"https://countrydraw.games/","applicationCategory":"GameApplication","operatingSystem":"Any","description":"Draw countries from memory with Country Draw. Sketch borders on a real map, compare matched, missed, and extra areas, and practice 197 countries online.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is Country Draw?","acceptedAnswer":{"@type":"Answer","text":"Country Draw is a free browser geography game where you draw countries from memory on a real map and compare your sketch with the actual geographic boundary."}},{"@type":"Question","name":"How is the drawing scored?","acceptedAnswer":{"@type":"Answer","text":"The result separates the target into matched and missed areas, measures any extra area outside the boundary, and combines those differences into an accuracy score."}},{"@type":"Question","name":"How many countries can I practice?","acceptedAnswer":{"@type":"Answer","text":"World mode includes 197 countries. You can also practice US states, Canadian provinces and territories, Australian states and territories, and the four UK countries."}},{"@type":"Question","name":"Can I choose a specific country?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use the practice selector or open a dedicated country page to repeat the same outline as often as needed."}},{"@type":"Question","name":"Does Country Draw work on mobile?","acceptedAnswer":{"@type":"Answer","text":"Yes. The map supports touch drawing, zooming, and panning on phones and tablets, as well as mouse and trackpad input on desktop."}},{"@type":"Question","name":"Is an account required?","acceptedAnswer":{"@type":"Answer","text":"No. Country Draw runs in the browser without an account or download, and game statistics are stored locally on your device."}}]},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Country Draw","item":"https://countrydraw.games/"},{"@type":"ListItem","position":2,"name":"Draw Countries From Memory with Country Draw","item":"https://countrydraw.games/"}]},{"@context":"https://schema.org","@type":"WebSite","name":"Country Draw","url":"https://countrydraw.games/","inLanguage":"en"}]</script>
   <script src="/assets/analytics.js"></script>
 </head>
@@ -48,9 +48,7 @@
       <div class="map-game-workspace">
         <section class="map-stage" aria-label="Interactive drawing map">
           <div class="prerender-map" role="img" aria-label="Interactive geography map loading">
-            <span class="map-loading-mark" aria-hidden="true"></span>
-            <strong data-prerender-status>Loading the interactive map...</strong>
-            <p>Draw countries from memory, then compare matched, missed, and extra map areas.</p>
+            <img class="prerender-map-poster" src="/assets/map-prerender-world.webp" width="1230" height="834" alt="Country Draw world map challenge showing a covered country in Africa" fetchpriority="high" decoding="async">
           </div>
 
           <div class="map-toolbox" aria-label="Map drawing tools">
@@ -217,6 +215,6 @@
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
 
-  <script src="/assets/app.js?v=20260729-share-menu" defer></script>
+  <script src="/assets/app.js?v=20260729-map-poster" defer></script>
 </body>
 </html>
