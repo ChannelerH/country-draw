@@ -94,8 +94,13 @@
   let score = null;
   let answered = false;
   let quizScore = { correct: 0, total: 0 };
+  let drawingStarted = false;
 
   render();
+  track("game_start", {
+    game_mode: modeKey,
+    target_slug: target.slug
+  });
 
   function render() {
     currentMode = modes[modeKey];
@@ -243,7 +248,12 @@
           score = null;
           strokes = [];
           answered = false;
+          drawingStarted = false;
           history.pushState(null, "", link.getAttribute("href"));
+          track("mode_changed", {
+            game_mode: modeKey,
+            target_slug: target.slug
+          });
           render();
         }
       });
@@ -270,6 +280,12 @@
           targetSlug = picked.slug;
           score = null;
           strokes = [];
+          drawingStarted = false;
+          track("target_changed", {
+            game_mode: modeKey,
+            target_slug: target.slug,
+            change_source: "challenge_list"
+          });
           render();
         }
       });
@@ -295,6 +311,12 @@
         quizScore.total += 1;
         const correct = button.dataset.answer === target.slug;
         if (correct) quizScore.correct += 1;
+        track("quiz_answered", {
+          game_mode: modeKey,
+          target_slug: target.slug,
+          answer_slug: button.dataset.answer,
+          is_correct: correct
+        });
         button.classList.add(correct ? "is-correct" : "is-wrong");
         root.querySelectorAll("[data-answer]").forEach(function (option) {
           if (option.dataset.answer === target.slug) option.classList.add("is-correct");
@@ -313,6 +335,13 @@
 
   function startStroke(event) {
     isDrawing = true;
+    if (!drawingStarted) {
+      drawingStarted = true;
+      track("drawing_started", {
+        game_mode: modeKey,
+        target_slug: target.slug
+      });
+    }
     canvas.setPointerCapture(event.pointerId);
     const point = getPoint(event);
     strokes.push([point]);
@@ -375,12 +404,22 @@
   function clearDrawing() {
     strokes = [];
     score = null;
+    drawingStarted = false;
+    track("drawing_cleared", {
+      game_mode: modeKey,
+      target_slug: target.slug
+    });
     redraw();
     render();
   }
 
   function revealTarget() {
     score = score === null ? 0 : score;
+    track("outline_revealed", {
+      game_mode: modeKey,
+      target_slug: target.slug,
+      score: score
+    });
     root.querySelector(".draw-board").classList.add("has-result");
     root.querySelector(".score-chip").textContent = score + "/100";
   }
@@ -389,6 +428,12 @@
     const points = strokes.flat();
     if (points.length < 10) {
       score = 0;
+      track("drawing_submitted", {
+        game_mode: modeKey,
+        target_slug: target.slug,
+        score: score,
+        point_count: points.length
+      });
       render();
       return;
     }
@@ -400,6 +445,12 @@
     const aspectPenalty = Math.abs(aspect(points) - aspect(targetPoints)) * 8;
     const raw = 100 - distance * 2.15 - aspectPenalty;
     score = Math.max(0, Math.min(100, Math.round(raw)));
+    track("drawing_submitted", {
+      game_mode: modeKey,
+      target_slug: target.slug,
+      score: score,
+      point_count: points.length
+    });
     render();
   }
 
@@ -492,6 +543,12 @@
     score = null;
     strokes = [];
     answered = false;
+    drawingStarted = false;
+    track("target_changed", {
+      game_mode: modeKey,
+      target_slug: target.slug,
+      change_source: "next_button"
+    });
     render();
   }
 
@@ -501,6 +558,12 @@
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
     }
+    track("result_shared", {
+      game_mode: modeKey,
+      target_slug: target.slug,
+      score: score,
+      share_method: "clipboard"
+    });
     const button = root.querySelector("[data-action='share']");
     if (button) button.textContent = "Copied";
   }
@@ -552,5 +615,11 @@
         "'": "&#39;"
       }[char];
     });
+  }
+
+  function track(eventName, parameters) {
+    if (typeof window.countryDrawTrack === "function") {
+      window.countryDrawTrack(eventName, parameters);
+    }
   }
 })();

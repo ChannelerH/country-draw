@@ -485,6 +485,110 @@ h3 {
   text-align: center;
 }
 
+.site-footer a,
+.privacy-page a {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.footer-links {
+  display: inline-flex;
+  gap: 14px;
+  margin-left: 12px;
+}
+
+.footer-privacy-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.privacy-page {
+  width: min(760px, calc(100% - 36px));
+  margin: 48px auto 80px;
+}
+
+.privacy-page header {
+  margin-bottom: 32px;
+}
+
+.privacy-page section {
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.privacy-page p,
+.privacy-page li {
+  color: var(--ink-soft);
+}
+
+.privacy-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.privacy-controls button,
+.consent-actions button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.consent-panel {
+  position: fixed;
+  z-index: 30;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 920px;
+  margin: 0 auto;
+  border: 1px solid rgba(20, 35, 43, 0.28);
+  border-radius: var(--radius);
+  padding: 16px;
+  background: #fffdf6;
+  box-shadow: 0 18px 48px rgba(20, 35, 43, 0.24);
+}
+
+.consent-panel strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+}
+
+.consent-panel p {
+  max-width: 620px;
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.consent-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.consent-actions .consent-accept {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #ffffff;
+}
+
 @media (max-width: 1020px) {
   .game-grid,
   .quiz-grid {
@@ -546,5 +650,20 @@ h3 {
 
   .mini-list {
     grid-template-columns: 1fr;
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 0;
+  }
+
+  .consent-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .consent-actions button {
+    flex: 1 1 0;
   }
 }

@@ -13,6 +13,8 @@ const coreLinks = [
   { href: "/draw-country-borders/", label: "Draw Country Borders" }
 ];
 
+const socialImage = `${siteUrl}/assets/og-country-draw.png`;
+
 const countries = [
   "Italy", "France", "Japan", "Brazil", "India", "United States", "Mexico", "Australia",
   "United Kingdom", "Germany", "Canada", "Spain", "Norway", "Argentina", "South Africa",
@@ -38,7 +40,6 @@ const pages = [
     mode: "world",
     h1: "Country Draw",
     intro: "Country Draw is a fast geography drawing game for people who know a map until they try to sketch it. Start with a country name, draw the outline from memory, then compare the result with the real shape.",
-    angle: "The page is built around the exact intent behind searches like country draw, draw the country, draw countries from memory, and country outline quiz.",
     faq: [
       ["What is Country Draw?", "Country Draw is a browser game where you draw a country, state, flag, or outline from memory and compare your result with a target shape."],
       ["Is Country Draw free?", "Yes. The game is designed to run in the browser without an account or download."],
@@ -52,7 +53,6 @@ const pages = [
     mode: "world",
     h1: "Draw Countries From Memory",
     intro: "This country drawing game focuses on the classic map memory challenge: can you draw the country well enough that another person would recognize it?",
-    angle: "Use this page for searches around draw country, draw the country, draw countries from memory, and geography drawing game.",
     faq: [
       ["How does the country drawing score work?", "The score compares your normalized sketch against sampled points from the target outline."],
       ["Which countries are included?", "The first version includes a focused set of common countries, with more country pages designed to be added over time."],
@@ -66,7 +66,6 @@ const pages = [
     mode: "world",
     h1: "Draw The Country",
     intro: "Draw The Country is the search phrase many players use when they want the country outline drawing challenge without installing anything.",
-    angle: "The page targets draw the country, country draw game, and draw country borders intent with an immediately playable canvas.",
     faq: [
       ["Is this the same as a map quiz?", "It is related, but the main action is drawing instead of choosing from a list."],
       ["Do I need a stylus?", "No. Mouse, trackpad, and touch drawing all work."],
@@ -80,7 +79,6 @@ const pages = [
     mode: "world",
     h1: "Draw Country Borders",
     intro: "Country borders are harder to remember than country names. This mode gives each outline enough space for repeated geography practice.",
-    angle: "The page is structured for long tail searches such as draw country borders, country border drawing game, and draw map from memory.",
     faq: [
       ["Are borders exact?", "The first target set uses simplified outlines for fast play and scoring."],
       ["Can I use this for study?", "Yes. It works best as repeated recall practice before checking a real map."],
@@ -94,7 +92,6 @@ const pages = [
     mode: "states",
     h1: "Draw US States From Memory",
     intro: "US state outlines make strong geography challenges because many shapes are familiar but difficult to sketch accurately.",
-    angle: "This page targets draw US states, draw states from memory, state outline drawing game, and US map drawing quiz searches.",
     faq: [
       ["Which states can I draw?", "The first set includes California, Texas, Florida, New York, Alaska, Hawaii, Colorado, Michigan, Washington, and Arizona."],
       ["Does the game work on mobile?", "Yes. The drawing canvas supports touch input."],
@@ -108,7 +105,6 @@ const pages = [
     mode: "flags",
     h1: "Draw Flags From Memory",
     intro: "Flag drawing is a nearby memory challenge for players who like geography games but want a faster visual prompt than a map outline.",
-    angle: "This page targets draw flags from memory, flag drawing game, draw country flags, and flag memory quiz intent.",
     faq: [
       ["Is this a flag coloring game?", "No. The first version compares the main flag geometry rather than color accuracy."],
       ["Which flags are included?", "The first set includes Japan, Switzerland, France, Canada, the United Kingdom, Brazil, the United States, and South Korea."],
@@ -122,7 +118,6 @@ const pages = [
     mode: "outline",
     h1: "Country Outline Quiz",
     intro: "Country outline quiz searches often come from players who want to recognize map shapes before they try drawing them.",
-    angle: "This page targets country outline quiz, guess country by shape, country silhouette quiz, and geography outline quiz.",
     faq: [
       ["How is this different from Country Draw?", "The outline quiz starts with recognition. Country Draw starts with recall and drawing."],
       ["Can I switch from quiz to drawing?", "Yes. The app links the outline quiz back to the drawing challenge."],
@@ -136,7 +131,6 @@ const pages = [
     mode: "outline",
     h1: "Guess Country By Shape",
     intro: "This outline quiz is made for players who remember coastlines and borders visually. Each silhouette is a direct bridge into country drawing practice.",
-    angle: "The page targets guess country by shape, guess country outline, and map silhouette quiz searches.",
     faq: [
       ["What shapes are included?", "The initial quiz uses common country outlines from the drawing pool."],
       ["Can I learn from wrong answers?", "Yes. Repeating the outline and then drawing it creates a useful memory loop."],
@@ -150,7 +144,6 @@ const pages = [
     mode: "world",
     h1: "Geography Drawing Game",
     intro: "The broader geography drawing game page collects the country, state, flag, and outline modes into one search-friendly entry point.",
-    angle: "This page targets geography drawing game, map drawing game, and draw map from memory intent.",
     faq: [
       ["What can I draw?", "Countries, selected US states, and simplified flag layouts."],
       ["Is it a learning tool or a game?", "It is both: quick enough to play, structured enough to practice geography recall."],
@@ -168,7 +161,6 @@ countries.forEach((country) => {
     target: country.slug,
     h1: `Draw ${country.name} From Memory`,
     intro: `This page starts Country Draw with ${country.name} selected, so players can practice one country outline instead of cycling through the full country list.`,
-    angle: `It targets long tail searches such as draw ${country.name}, ${country.name} outline drawing, and draw ${country.name} from memory.`,
     faq: [
       [`Can I draw ${country.name} directly?`, `Yes. This page opens the drawing game with ${country.name} selected as the first challenge.`],
       [`Why practice ${country.name} alone?`, `Single country pages are useful when you want repeated recall on one outline before moving to a full map quiz.`],
@@ -186,7 +178,6 @@ states.forEach((state) => {
     target: state.slug,
     h1: `Draw ${state.name} From Memory`,
     intro: `This state page starts the US states drawing mode with ${state.name} selected for focused outline practice.`,
-    angle: `It targets long tail searches such as draw ${state.name}, ${state.name} outline game, and draw ${state.name} from memory.`,
     faq: [
       [`Can I draw ${state.name} online?`, `Yes. This page opens the drawing canvas with ${state.name} selected.`],
       ["Are other states available?", "Yes. The US states mode includes a starter set of recognizable state outlines."],
@@ -204,7 +195,6 @@ flags.forEach((flag) => {
     target: flag.slug,
     h1: `Draw The ${flag.name} Flag From Memory`,
     intro: `This flag page starts the flag drawing mode with the ${flag.name} flag selected for focused memory practice.`,
-    angle: `It targets long tail searches such as draw ${flag.name} flag, ${flag.name} flag from memory, and flag drawing quiz.`,
     faq: [
       [`Can I draw the ${flag.name} flag?`, `Yes. This page opens the flag drawing mode with the ${flag.name} flag selected.`],
       ["Does color matter?", "The first scoring pass focuses on the main geometry of the flag."],
@@ -225,8 +215,13 @@ writeFileSync(join(root, "manifest.webmanifest"), JSON.stringify({
 }, null, 2));
 
 pages.forEach((page) => writePage(page));
+mkdirSync(join(root, "privacy"), { recursive: true });
+writeFileSync(join(root, "privacy", "index.html"), privacyTemplate());
 writeFileSync(join(root, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${siteUrl}/sitemap.xml\n`);
-writeFileSync(join(root, "sitemap.xml"), sitemap(pages));
+writeFileSync(join(root, "sitemap.xml"), sitemap(pages.concat([{
+  path: "/privacy/",
+  target: true
+}])));
 writeFileSync(join(root, "404.html"), template({
   path: "/404.html",
   title: "Country Draw Page Not Found",
@@ -234,7 +229,6 @@ writeFileSync(join(root, "404.html"), template({
   mode: "world",
   h1: "Country Draw",
   intro: "This page was not found, but the drawing game is ready.",
-  angle: "Use the navigation links to open the country, state, flag, or outline quiz mode.",
   faq: [
     ["Where should I go next?", "Start with the main Country Draw page or the country drawing mode."],
     ["Can I still play?", "Yes. The app loads on this page too."]
@@ -294,6 +288,13 @@ function template(page) {
           item: canonical
         }
       ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Country Draw",
+      url: `${siteUrl}/`,
+      inLanguage: "en"
     }
   ];
 
@@ -305,18 +306,25 @@ function template(page) {
   <title>${escapeHtml(page.title)}</title>
   <meta name="description" content="${escapeHtml(page.description)}">
   <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#173f58">
   <link rel="canonical" href="${canonical}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Country Draw">
   <meta property="og:title" content="${escapeHtml(page.title)}">
   <meta property="og:description" content="${escapeHtml(page.description)}">
   <meta property="og:url" content="${canonical}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="${socialImage}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Country Draw geography drawing game">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(page.title)}">
   <meta name="twitter:description" content="${escapeHtml(page.description)}">
+  <meta name="twitter:image" content="${socialImage}">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/styles.css">
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+  <script src="/assets/analytics.js"></script>
 </head>
 <body>
   <div data-country-draw-app data-mode="${page.mode}" data-target="${page.target || ""}"></div>
@@ -327,8 +335,8 @@ function template(page) {
       <p>${escapeHtml(page.intro)}</p>
       <div class="seo-columns">
         <section>
-          <h2>Search Intent</h2>
-          <p>${escapeHtml(page.angle)}</p>
+          <h2>What to Notice</h2>
+          <p>${escapeHtml(practiceTip(page))}</p>
         </section>
         <section>
           <h2>Practice Loop</h2>
@@ -346,8 +354,76 @@ function template(page) {
       </div>
     </aside>
   </main>
-  <footer class="site-footer">Country Draw is a browser geography drawing game built for country outlines, state outlines, flags, and shape quizzes.</footer>
+  <footer class="site-footer">
+    Country Draw is a free browser geography game.
+    <span class="footer-links"><a href="/privacy/">Privacy</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
+  </footer>
   <script src="/assets/app.js" defer></script>
+</body>
+</html>
+`;
+}
+
+function practiceTip(page) {
+  if (page.mode === "flags") {
+    return "Start with the flag's largest blocks, then place the central symbol or cross. Proportion matters more than tiny details on the first attempt.";
+  }
+  if (page.mode === "states") {
+    return "Look for the longest edge, the overall aspect ratio, and one distinctive corner. Those three anchors make a state outline much easier to recall.";
+  }
+  if (page.mode === "outline") {
+    return "Compare the silhouette's width, coastline direction, and any narrow peninsula before choosing an answer. Then draw the same shape to strengthen recall.";
+  }
+  if (page.target) {
+    return `Sketch the overall width and height of ${page.h1.replace(/^Draw | From Memory$/g, "")} before adding coastlines or borders. Large proportions have the biggest effect on recognition.`;
+  }
+  return "Block in the overall width and height first. Add one memorable coastline, border, or peninsula only after the main proportion feels right.";
+}
+
+function privacyTemplate() {
+  const title = "Privacy - Country Draw";
+  const description = "Learn how Country Draw uses Google Analytics and manage your analytics choice.";
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#173f58">
+  <link rel="canonical" href="${siteUrl}/privacy/">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/analytics.js"></script>
+</head>
+<body>
+  <main class="privacy-page">
+    <header>
+      <p class="kicker">Country Draw</p>
+      <h1>Privacy</h1>
+      <p>Last updated: July 28, 2026</p>
+    </header>
+    <section>
+      <h2>What the game stores</h2>
+      <p>Your drawing stays in the browser while you play. Country Draw does not require an account and does not ask for your name, email address, or payment details.</p>
+    </section>
+    <section>
+      <h2>Analytics</h2>
+      <p>With your permission, Google Analytics measures page visits and game actions such as starting a drawing, submitting a score, changing a target, and answering an outline quiz. Event data identifies the game mode and shape, not the player.</p>
+      <p>Advertising storage and ad personalization are disabled. You can decline analytics and continue using every game feature.</p>
+    </section>
+    <section>
+      <h2>Your choice</h2>
+      <div class="privacy-controls">
+        <button type="button" data-privacy-choices>Review analytics choice</button>
+        <a class="ghost-link" href="/">Back to Country Draw</a>
+      </div>
+    </section>
+    <section>
+      <h2>Third-party service</h2>
+      <p>Google Analytics is provided by Google. Google's handling of analytics data is described in its privacy and data-use documentation.</p>
+    </section>
+  </main>
 </body>
 </html>
 `;
