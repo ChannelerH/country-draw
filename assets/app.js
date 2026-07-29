@@ -199,8 +199,8 @@
               <p class="share-feedback" data-share-feedback aria-live="polite">Your score card includes the result map and all four score values.</p>
 
               <div class="share-dialog-actions">
-                <button type="button" class="share-action-primary" data-action="native-share">Share PNG</button>
-                <button type="button" data-action="copy-result">Copy result</button>
+                <button type="button" data-action="native-share">Share PNG</button>
+                <button type="button" data-action="copy-image">Copy image</button>
                 <button type="button" data-action="download-result">Download PNG</button>
               </div>
             </div>
@@ -318,7 +318,9 @@
       container.querySelector("[data-action='map-share']").addEventListener("click", openShareDialog);
       container.querySelector("[data-action='close-share']").addEventListener("click", closeShareDialog);
       container.querySelector("[data-action='native-share']").addEventListener("click", shareResultImage);
-      container.querySelector("[data-action='copy-result']").addEventListener("click", copyResult);
+      container.querySelector("[data-action='copy-image']").addEventListener("click", function () {
+        copyResultImage(container.querySelector("[data-action='copy-image']"));
+      });
       container.querySelector("[data-action='download-result']").addEventListener("click", downloadResultImage);
       const shareDialog = container.querySelector("[data-share-dialog]");
       shareDialog.addEventListener("click", function (event) {
@@ -813,6 +815,7 @@
       const loading = container.querySelector("[data-share-loading]");
       const feedback = container.querySelector("[data-share-feedback]");
       const nativeButton = container.querySelector("[data-action='native-share']");
+      const copyImageButton = container.querySelector("[data-action='copy-image']");
 
       resetShareCard();
       container.querySelector("#share-dialog-title").textContent = `Share ${target.properties.name}`;
@@ -821,6 +824,7 @@
       loading.textContent = "Building your score card...";
       feedback.textContent = "Your score card includes the result map and all four score values.";
       nativeButton.hidden = true;
+      copyImageButton.hidden = true;
       setShareActionsDisabled(true);
       dialog.showModal();
 
@@ -858,27 +862,20 @@
       const preview = container.querySelector("[data-share-preview]");
       if (preview) preview.removeAttribute("src");
       const nativeButton = container.querySelector("[data-action='native-share']");
+      const copyImageButton = container.querySelector("[data-action='copy-image']");
       nativeButton.hidden = true;
       nativeButton.textContent = "Share PNG";
-      container.querySelectorAll("[data-action='copy-result'], [data-action='download-result']").forEach((button) => {
-        button.textContent = button.dataset.action === "copy-result" ? "Copy result" : "Download PNG";
-      });
+      nativeButton.classList.remove("share-action-primary");
+      copyImageButton.hidden = true;
+      copyImageButton.textContent = "Copy image";
+      copyImageButton.classList.remove("share-action-primary");
+      container.querySelector("[data-action='download-result']").textContent = "Download PNG";
     }
 
     function setShareActionsDisabled(disabled) {
       container.querySelectorAll(".share-dialog-actions button").forEach((button) => {
         button.disabled = disabled;
       });
-    }
-
-    function shareText(includeUrl = true) {
-      const lines = [
-        `Country Draw ${todayLabel()}`,
-        `${target.properties.name}: ${result.accuracy}% accuracy`,
-        `Matched ${result.matched}% | Missed ${result.missedPercent}% | Extra ${result.extraPercent}%`
-      ];
-      if (includeUrl) lines.push(location.href);
-      return lines.join("\n");
     }
 
     function shareImageFile() {
@@ -894,40 +891,49 @@
     }
 
     function configureShareImageAction() {
-      const button = container.querySelector("[data-action='native-share']");
+      const nativeButton = container.querySelector("[data-action='native-share']");
+      const copyImageButton = container.querySelector("[data-action='copy-image']");
       const fileData = { files: [shareImageFile()] };
       const canShareFile = typeof navigator.share === "function"
         && typeof navigator.canShare === "function"
         && navigator.canShare(fileData);
+      const canCopyFile = canCopyImage();
+      const prefersCopy = canCopyFile
+        && typeof window.matchMedia === "function"
+        && window.matchMedia("(pointer: fine)").matches;
 
       if (canShareFile) {
         shareImageAction = "native";
-        button.textContent = "Share PNG";
-        button.hidden = false;
-        return;
+        nativeButton.hidden = false;
       }
 
-      if (canCopyImage()) {
-        shareImageAction = "clipboard";
-        button.textContent = "Copy image";
-        button.hidden = false;
-        setShareFeedback("This browser cannot send files to the share menu. Copy the PNG, then paste it into your app.");
-        return;
+      if (canCopyFile) {
+        copyImageButton.hidden = false;
       }
 
-      shareImageAction = "none";
-      button.hidden = true;
-      setShareFeedback("Download the PNG to share the score card.");
+      if (prefersCopy || !canShareFile) {
+        copyImageButton.classList.toggle("share-action-primary", canCopyFile);
+      } else {
+        nativeButton.classList.add("share-action-primary");
+      }
+
+      if (canShareFile && canCopyFile) {
+        setShareFeedback(prefersCopy
+          ? "Copy the PNG to paste it anywhere, or use the system share menu."
+          : "Share the PNG with an app, copy it, or save it to your device.");
+      } else if (canCopyFile) {
+        setShareFeedback("Copy the PNG, then paste it into a chat, post, email, or document.");
+      } else if (canShareFile) {
+        setShareFeedback("Share the PNG with an app installed on this device.");
+      } else {
+        shareImageAction = "none";
+        setShareFeedback("Download the PNG to share the score card.");
+      }
     }
 
     async function shareResultImage() {
       if (!shareBlob) return;
       const button = container.querySelector("[data-action='native-share']");
-
-      if (shareImageAction === "clipboard") {
-        await copyResultImage(button);
-        return;
-      }
 
       if (shareImageAction !== "native") return;
       const data = { files: [shareImageFile()] };
@@ -941,8 +947,10 @@
       } catch (error) {
         if (error.name !== "AbortError") {
           if (canCopyImage()) {
-            shareImageAction = "clipboard";
-            button.textContent = "Copy image";
+            shareImageAction = "none";
+            button.hidden = true;
+            button.classList.remove("share-action-primary");
+            container.querySelector("[data-action='copy-image']").classList.add("share-action-primary");
             setShareFeedback("The system could not share the file. Copy the PNG, then paste it into your app.");
           } else {
             button.hidden = true;
@@ -961,19 +969,6 @@
         track("result_shared", { share_method: "clipboard_image", score: result.accuracy });
       } catch {
         setShareFeedback("Image clipboard access was blocked. Download the PNG instead.");
-      }
-    }
-
-    async function copyResult() {
-      if (!result) return;
-      const button = container.querySelector("[data-action='copy-result']");
-      try {
-        await copyText(shareText());
-        button.textContent = "Copied";
-        setShareFeedback("Result and link copied to the clipboard.");
-        track("result_shared", { share_method: "clipboard", score: result.accuracy });
-      } catch {
-        setShareFeedback("Clipboard access was blocked. Download the PNG instead.");
       }
     }
 
@@ -1462,18 +1457,4 @@
     document.head.appendChild(link);
   }
 
-  async function copyText(text) {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-    const field = document.createElement("textarea");
-    field.value = text;
-    field.style.position = "fixed";
-    field.style.opacity = "0";
-    document.body.appendChild(field);
-    field.select();
-    document.execCommand("copy");
-    field.remove();
-  }
 })();
