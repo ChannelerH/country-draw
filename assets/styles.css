@@ -917,6 +917,8 @@ h3 {
 
 .map-stage {
   position: relative;
+  align-self: start;
+  height: calc(100svh - 66px);
   min-width: 0;
   min-height: 640px;
   overflow: hidden;
@@ -938,6 +940,160 @@ h3 {
 .map-drawing-canvas {
   z-index: 4;
   touch-action: none;
+}
+
+.map-result-overlay {
+  position: absolute;
+  z-index: 9;
+  right: 50%;
+  bottom: 28px;
+  width: min(760px, calc(100% - 48px));
+  transform: translateX(50%);
+  border: 3px solid #101617;
+  border-radius: 8px;
+  padding: 24px 26px 18px;
+  background: rgba(29, 35, 36, 0.94);
+  box-shadow: 0 18px 50px rgba(12, 20, 22, 0.28);
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+}
+
+.map-result-overlay[hidden] {
+  display: none;
+}
+
+.map-result-close {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  font: 700 1.45rem/1 Arial, sans-serif;
+}
+
+.map-result-close:hover,
+.map-result-close:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.map-result-row {
+  display: grid;
+  grid-template-columns: 18px 106px minmax(100px, 1fr) 52px;
+  align-items: center;
+  gap: 12px;
+  min-height: 34px;
+}
+
+.map-result-row.is-accuracy {
+  grid-template-columns: 136px minmax(100px, 1fr) 58px;
+  padding-right: 32px;
+}
+
+.map-result-row strong,
+.map-result-row b {
+  font-size: 1rem;
+}
+
+.map-result-row b {
+  text-align: right;
+}
+
+.map-result-track {
+  height: 16px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.map-result-track > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 420ms ease;
+}
+
+.map-result-row.is-accuracy .map-result-track > span {
+  background: #ffffff;
+}
+
+.map-result-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.map-result-dot.is-green,
+.map-result-fill.is-green {
+  background: #2dcc75;
+}
+
+.map-result-dot.is-red,
+.map-result-fill.is-red {
+  background: #f24d3f;
+}
+
+.map-result-dot.is-gold,
+.map-result-fill.is-gold {
+  background: #ffa617;
+}
+
+.map-result-divider {
+  height: 1px;
+  margin: 12px 0 10px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.map-result-metrics {
+  display: grid;
+  gap: 4px;
+}
+
+.map-result-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.map-result-actions button {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.map-result-actions button:last-child {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #1d2324;
+}
+
+.map-result-actions button:hover,
+.map-result-actions button:focus-visible {
+  border-color: #77bde8;
+}
+
+.map-stage.is-showing-result .map-status {
+  display: none;
+}
+
+body:has(.consent-panel) .map-result-overlay:not([hidden]) {
+  bottom: 146px;
 }
 
 .map-toolbox {
@@ -1303,6 +1459,10 @@ h3 {
 }
 
 @media (max-width: 1020px) {
+  .map-result-overlay {
+    position: fixed;
+  }
+
   .map-game-header {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -1319,6 +1479,9 @@ h3 {
   }
 
   .map-stage {
+    position: relative;
+    top: auto;
+    height: auto;
     min-height: 62svh;
   }
 
@@ -1381,6 +1544,49 @@ h3 {
 
   .map-tool-segment button {
     min-width: 48px;
+  }
+
+  .map-result-overlay {
+    bottom: 12px;
+    width: calc(100% - 20px);
+    padding: 18px 14px 14px;
+  }
+
+  body:has(.consent-panel) .map-result-overlay:not([hidden]) {
+    bottom: 246px;
+  }
+
+  .map-result-close {
+    top: 4px;
+    right: 4px;
+  }
+
+  .map-result-row {
+    grid-template-columns: 14px 66px minmax(60px, 1fr) 42px;
+    gap: 8px;
+  }
+
+  .map-result-row.is-accuracy {
+    grid-template-columns: 82px minmax(60px, 1fr) 46px;
+    padding-right: 24px;
+  }
+
+  .map-result-row strong,
+  .map-result-row b {
+    font-size: 0.82rem;
+  }
+
+  .map-result-track {
+    height: 12px;
+  }
+
+  .map-result-dot {
+    width: 12px;
+    height: 12px;
+  }
+
+  .map-result-actions {
+    margin-top: 10px;
   }
 
   .map-status {

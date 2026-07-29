@@ -90,6 +90,25 @@
               <div id="country-map"></div>
               <canvas class="map-drawing-canvas" aria-label="Draw the missing border"></canvas>
 
+              <section class="map-result-overlay" data-map-result hidden aria-label="Drawing result" aria-live="polite">
+                <button type="button" class="map-result-close" data-action="dismiss-result" title="Close result" aria-label="Close result">&times;</button>
+                <div class="map-result-row is-accuracy">
+                  <strong>Accuracy</strong>
+                  <div class="map-result-track"><span data-map-score-fill></span></div>
+                  <b data-map-score>0%</b>
+                </div>
+                <div class="map-result-divider"></div>
+                <div class="map-result-metrics">
+                  ${mapScoreRow("Matched", "matched", "green")}
+                  ${mapScoreRow("Missed", "missed", "red")}
+                  ${mapScoreRow("Extra", "extra", "gold")}
+                </div>
+                <div class="map-result-actions">
+                  <button type="button" data-action="map-retry">Try again</button>
+                  <button type="button" data-action="map-share">Share</button>
+                </div>
+              </section>
+
               <div class="map-toolbox" aria-label="Map tools">
                 <div class="map-tool-segment">
                   <button type="button" data-interaction="draw" class="is-active" title="Draw on the map" aria-label="Draw on the map">Draw</button>
@@ -265,6 +284,11 @@
       container.querySelector("[data-action='clear']").addEventListener("click", clearDrawing);
       container.querySelector("[data-action='submit']").addEventListener("click", submitDrawing);
       container.querySelector("[data-action='share']").addEventListener("click", shareResult);
+      container.querySelector("[data-action='dismiss-result']").addEventListener("click", dismissMapResult);
+      container.querySelector("[data-action='map-retry']").addEventListener("click", function () {
+        startChallenge(target, challengeType);
+      });
+      container.querySelector("[data-action='map-share']").addEventListener("click", shareResult);
       container.querySelector("[data-action='daily']").addEventListener("click", function () {
         challengeType = "daily";
         startChallenge(dailyFeature(regionKey, gameMode), "daily");
@@ -347,7 +371,11 @@
         : `Draw the hidden ${config.noun}`;
       container.querySelector("[data-challenge-number]").textContent = dedicated ? `${index}/${regionFeatures.length}` : todayLabel();
       container.querySelector("[data-result]").hidden = true;
+      container.querySelector("[data-map-result]").hidden = true;
+      container.querySelector(".map-stage").classList.remove("is-showing-result");
       container.querySelector("[data-action='share']").hidden = true;
+      container.querySelector("[data-action='share']").textContent = "Share result";
+      container.querySelector("[data-action='map-share']").textContent = "Share";
       container.querySelector("[data-action='submit']").hidden = false;
       container.querySelector("[data-action='submit']").disabled = false;
       container.querySelector("[data-action='submit']").textContent = "Submit drawing";
@@ -653,6 +681,9 @@
       removeCapitalMarker();
       setInteractionMode("move");
       redrawPaths();
+      if (window.matchMedia("(max-width: 1020px)").matches) {
+        container.querySelector(".map-stage").scrollIntoView({ block: "start" });
+      }
 
       const panel = container.querySelector("[data-result]");
       panel.hidden = false;
@@ -661,6 +692,7 @@
       setScoreRow("matched", result.matched);
       setScoreRow("missed", result.missedPercent);
       setScoreRow("extra", result.extraPercent);
+      showMapResult();
       container.querySelector("[data-action='submit']").hidden = true;
       container.querySelector("[data-action='share']").hidden = false;
       container.querySelector("[data-action='clear']").disabled = false;
@@ -670,10 +702,34 @@
       setStatus(`Scored ${result.accuracy}% for ${target.properties.name}.`);
     }
 
+    function showMapResult() {
+      const panel = container.querySelector("[data-map-result]");
+      panel.hidden = false;
+      container.querySelector(".map-stage").classList.add("is-showing-result");
+      container.querySelector("[data-map-score]").textContent = `${result.accuracy}%`;
+      container.querySelector("[data-map-score-fill]").style.width = `${result.accuracy}%`;
+      setMapScoreRow("matched", result.matched);
+      setMapScoreRow("missed", result.missedPercent);
+      setMapScoreRow("extra", result.extraPercent);
+    }
+
+    function dismissMapResult() {
+      container.querySelector("[data-map-result]").hidden = true;
+      container.querySelector(".map-stage").classList.remove("is-showing-result");
+      setStatus(`Scored ${result.accuracy}% for ${target.properties.name}.`);
+      container.querySelector("[data-action='clear']").focus();
+    }
+
     function setScoreRow(key, value) {
       const row = container.querySelector(`[data-score-row="${key}"]`);
       row.querySelector("strong").textContent = `${value}%`;
       row.querySelector(".area-score-fill").style.width = `${Math.min(100, value)}%`;
+    }
+
+    function setMapScoreRow(key, value) {
+      const row = container.querySelector(`[data-map-score-row="${key}"]`);
+      row.querySelector("b").textContent = `${value}%`;
+      row.querySelector(".map-result-fill").style.width = `${Math.min(100, value)}%`;
     }
 
     function clearResultLayers() {
@@ -723,14 +779,17 @@
         location.href
       ].join("\n");
       const button = container.querySelector("[data-action='share']");
+      const mapButton = container.querySelector("[data-action='map-share']");
       try {
         if (typeof navigator.share === "function") {
           await navigator.share({ title: "Country Draw", text });
           button.textContent = "Shared";
+          mapButton.textContent = "Shared";
           track("result_shared", { share_method: "native", score: result.accuracy });
         } else {
           await copyText(text);
           button.textContent = "Copied";
+          mapButton.textContent = "Copied";
           track("result_shared", { share_method: "clipboard", score: result.accuracy });
         }
       } catch {
@@ -863,6 +922,17 @@
         <div class="area-score-row" data-score-row="${key}">
           <div><span class="area-score-dot is-${color}"></span><span>${label}</span><strong>0%</strong></div>
           <div class="area-score-track"><span class="area-score-fill is-${color}"></span></div>
+        </div>
+      `;
+    }
+
+    function mapScoreRow(label, key, color) {
+      return `
+        <div class="map-result-row" data-map-score-row="${key}">
+          <span class="map-result-dot is-${color}"></span>
+          <strong>${label}</strong>
+          <div class="map-result-track"><span class="map-result-fill is-${color}"></span></div>
+          <b>0%</b>
         </div>
       `;
     }
