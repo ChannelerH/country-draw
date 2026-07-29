@@ -15,6 +15,7 @@ The site has no build dependency. Core pages and long tail SEO pages are generat
 
 ```bash
 node scripts/generate-pages.mjs
+node scripts/audit-seo.mjs
 ```
 
 The production canonical domain defaults to `https://countrydraw.games`. Override it for previews or alternate deployments:
@@ -33,6 +34,16 @@ Generated outputs include:
 - `manifest.webmanifest`
 - `404.html`
 
+Country outlines are generated from Natural Earth data distributed by
+`world-atlas`:
+
+```bash
+node scripts/generate-country-shapes.mjs
+```
+
+The generated `assets/country-shapes.js` file is committed so the production
+game does not need a third-party request at runtime.
+
 ## Local Preview
 
 ```bash
@@ -50,4 +61,6 @@ Add new targets in two places:
 1. `assets/app.js` for playable shapes.
 2. `scripts/generate-pages.mjs` for generated SEO pages.
 
-Keep target pages playable. Do not generate large sets of country pages until the matching shapes exist in the app data.
+Keep target pages playable. The game exposes 172 searchable country and
+territory outlines, while dedicated long-tail pages are limited to targets
+with reviewed, unique practice guidance.

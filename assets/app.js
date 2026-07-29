@@ -77,7 +77,18 @@
     }
   };
 
-  modes.outline.pool = modes.world.pool.slice(0, 18);
+  if (Array.isArray(window.COUNTRY_DRAW_SHAPES) && window.COUNTRY_DRAW_SHAPES.length > modes.world.pool.length) {
+    const originalBySlug = Object.fromEntries(modes.world.pool.map(function (item) {
+      return [item.slug, item];
+    }));
+    modes.world.pool = window.COUNTRY_DRAW_SHAPES.map(function (item) {
+      return Object.assign({}, item, {
+        region: originalBySlug[item.slug]?.region || item.region
+      });
+    });
+  }
+
+  modes.outline.pool = modes.world.pool.slice();
 
   const root = document.querySelector("[data-country-draw-app]");
   if (!root) return;
@@ -92,9 +103,12 @@
   let canvas;
   let ctx;
   let score = null;
+  let revealed = false;
+  let notice = "";
   let answered = false;
   let quizScore = { correct: 0, total: 0 };
   let drawingStarted = false;
+  let stats = loadStats();
 
   render();
   track("game_start", {
@@ -138,10 +152,13 @@
               <strong>${escapeHtml(target.name)}</strong>
               <span>${escapeHtml(target.region)}</span>
             </div>
-            <div class="mini-list" aria-label="Available challenges">
-              ${currentMode.pool.slice(0, 8).map(function (item) {
-                return `<button class="${item.slug === target.slug ? "is-selected" : ""}" data-target-pick="${item.slug}">${escapeHtml(item.name)}</button>`;
-              }).join("")}
+            <label class="target-search">
+              <span>Find a ${modeKey === "flags" ? "flag" : modeKey === "states" ? "state" : "country"}</span>
+              <input type="search" inputmode="search" autocomplete="off" placeholder="Search ${currentMode.pool.length} shapes" data-target-search>
+            </label>
+            <div class="challenge-count">${currentMode.pool.length} shapes available</div>
+            <div class="mini-list" data-target-list aria-label="Available challenges">
+              ${targetButtons(currentMode.pool, target.slug)}
             </div>
           </aside>
           <section class="board-panel">
@@ -150,29 +167,31 @@
                 <p class="kicker">Draw from memory</p>
                 <h1>${escapeHtml(target.name)}</h1>
               </div>
-              <div class="score-chip" aria-live="polite">${score === null ? "No score yet" : score + "/100"}</div>
+              <div class="score-chip" aria-live="polite">${score === null ? revealed ? "Reference" : "No score yet" : score + "/100"}</div>
             </div>
-            <div class="draw-board ${score === null ? "" : "has-result"}">
+            <div class="draw-board ${score === null && !revealed ? "" : "has-result"}">
               <svg class="target-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
                 <path id="target-path" d="${target.path}"></path>
               </svg>
               <canvas id="draw-canvas" aria-label="Drawing canvas"></canvas>
             </div>
+            <p class="board-message" aria-live="polite">${escapeHtml(notice)}</p>
             <div class="tool-row" aria-label="Drawing controls">
               <button class="primary-action" data-action="submit">Submit drawing</button>
-              <button data-action="clear">Clear</button>
+              <button data-action="clear">${score === null && !revealed ? "Clear" : "Try again"}</button>
               <button data-action="new">New shape</button>
               <button data-action="reveal">Reveal</button>
             </div>
           </section>
           <aside class="result-panel">
             <p class="kicker">Result</p>
-            <h2>${score === null ? "Draw first" : resultLabel(score)}</h2>
-            <p>${score === null ? "Awaiting your first outline." : resultCopy(score, target.name)}</p>
+            <h2>${score === null ? revealed ? "Study the outline" : "Draw first" : resultLabel(score)}</h2>
+            <p>${score === null ? revealed ? `Trace the major turns of ${escapeHtml(target.name)}, then choose Try again.` : "Awaiting your first outline." : resultCopy(score, target.name)}</p>
             <div class="metric-stack">
               <div><span>Mode</span><strong>${currentMode.label}</strong></div>
               <div><span>Target</span><strong>${escapeHtml(target.name)}</strong></div>
-              <div><span>Best next move</span><strong>${score === null ? "Sketch" : "Share or retry"}</strong></div>
+              <div><span>Personal best</span><strong>${stats[modeKey]?.best || 0}/100</strong></div>
+              <div><span>Completed</span><strong>${stats[modeKey]?.rounds || 0}</strong></div>
             </div>
             <button class="share-button" data-action="share" ${score === null ? "disabled" : ""}>Copy result</button>
           </aside>
@@ -204,7 +223,7 @@
                 <p class="kicker">Country outline quiz</p>
                 <h1>Guess the silhouette</h1>
               </div>
-              <div class="score-chip">${quizScore.correct}/${quizScore.total}</div>
+              <div class="score-chip" data-quiz-score aria-live="polite">${quizScore.correct}/${quizScore.total}</div>
             </div>
             <div class="silhouette-card">
               <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -217,17 +236,17 @@
               }).join("")}
             </div>
             <div class="tool-row">
-              <button data-action="new">Next outline</button>
+              <button data-action="new">Skip / next outline</button>
               <a class="ghost-link" href="/draw-country/">Switch to drawing</a>
             </div>
           </section>
           <aside class="result-panel">
             <p class="kicker">Streak</p>
-            <h2>${answered ? "Keep going" : "Pick a country"}</h2>
-            <p>${answered ? "The next silhouette is ready." : "Silhouette recognition mode."}</p>
+            <h2 data-quiz-heading>${answered ? "Keep going" : "Pick a country"}</h2>
+            <p data-quiz-copy aria-live="polite">${answered ? "The next silhouette is ready." : "Silhouette recognition mode."}</p>
             <div class="metric-stack">
-              <div><span>Correct</span><strong>${quizScore.correct}</strong></div>
-              <div><span>Attempts</span><strong>${quizScore.total}</strong></div>
+              <div><span>Correct</span><strong data-quiz-correct>${quizScore.correct}</strong></div>
+              <div><span>Attempts</span><strong data-quiz-total>${quizScore.total}</strong></div>
               <div><span>Pool</span><strong>${currentMode.pool.length} outlines</strong></div>
             </div>
           </aside>
@@ -238,24 +257,11 @@
 
   function bindCommon() {
     root.querySelectorAll("[data-mode-switch]").forEach(function (link) {
-      link.addEventListener("click", function (event) {
-        if (!event.metaKey && !event.ctrlKey) {
-          event.preventDefault();
-          modeKey = link.dataset.modeSwitch;
-          currentMode = modes[modeKey];
-          target = dailyTarget(currentMode.pool);
-          targetSlug = "";
-          score = null;
-          strokes = [];
-          answered = false;
-          drawingStarted = false;
-          history.pushState(null, "", link.getAttribute("href"));
-          track("mode_changed", {
-            game_mode: modeKey,
-            target_slug: target.slug
-          });
-          render();
-        }
+      link.addEventListener("click", function () {
+        track("mode_changed", {
+          game_mode: link.dataset.modeSwitch,
+          target_slug: target.slug
+        });
       });
     });
   }
@@ -272,23 +278,19 @@
     canvas.addEventListener("pointercancel", endStroke);
     canvas.addEventListener("pointerleave", endStroke);
 
-    root.querySelectorAll("[data-target-pick]").forEach(function (button) {
-      button.addEventListener("click", function () {
-        const picked = findTarget(modeKey, button.dataset.targetPick);
-        if (picked) {
-          target = picked;
-          targetSlug = picked.slug;
-          score = null;
-          strokes = [];
-          drawingStarted = false;
-          track("target_changed", {
-            game_mode: modeKey,
-            target_slug: target.slug,
-            change_source: "challenge_list"
-          });
-          render();
-        }
-      });
+    const targetList = root.querySelector("[data-target-list]");
+    const search = root.querySelector("[data-target-search]");
+    targetList.addEventListener("click", function (event) {
+      const button = event.target.closest("[data-target-pick]");
+      if (!button) return;
+      pickTarget(button.dataset.targetPick, "challenge_list");
+    });
+    search.addEventListener("input", function () {
+      const query = search.value.trim().toLowerCase();
+      const matches = query
+        ? currentMode.pool.filter(function (item) { return item.name.toLowerCase().includes(query); })
+        : currentMode.pool;
+      targetList.innerHTML = targetButtons(matches, target.slug);
     });
 
     root.querySelectorAll("[data-action]").forEach(function (button) {
@@ -322,6 +324,15 @@
           if (option.dataset.answer === target.slug) option.classList.add("is-correct");
           option.disabled = true;
         });
+        root.querySelector("[data-quiz-score]").textContent = `${quizScore.correct}/${quizScore.total}`;
+        root.querySelector("[data-quiz-correct]").textContent = quizScore.correct;
+        root.querySelector("[data-quiz-total]").textContent = quizScore.total;
+        root.querySelector("[data-quiz-heading]").textContent = correct ? "Correct" : `It was ${target.name}`;
+        root.querySelector("[data-quiz-copy]").textContent = correct
+          ? `You recognized ${target.name}. Draw it next to reinforce the shape.`
+          : `Compare the outline with ${target.name}, then try another silhouette.`;
+        const nextButton = root.querySelector("[data-action='new']");
+        if (nextButton) nextButton.textContent = "Next outline";
       });
     });
 
@@ -404,6 +415,8 @@
   function clearDrawing() {
     strokes = [];
     score = null;
+    revealed = false;
+    notice = "";
     drawingStarted = false;
     track("drawing_cleared", {
       game_mode: modeKey,
@@ -414,27 +427,22 @@
   }
 
   function revealTarget() {
-    score = score === null ? 0 : score;
+    revealed = true;
+    notice = `Reference shown for ${target.name}. Choose Try again to redraw it from memory.`;
     track("outline_revealed", {
       game_mode: modeKey,
       target_slug: target.slug,
-      score: score
+      score: score === null ? -1 : score
     });
-    root.querySelector(".draw-board").classList.add("has-result");
-    root.querySelector(".score-chip").textContent = score + "/100";
+    render();
   }
 
   function submitDrawing() {
     const points = strokes.flat();
     if (points.length < 10) {
-      score = 0;
-      track("drawing_submitted", {
-        game_mode: modeKey,
-        target_slug: target.slug,
-        score: score,
-        point_count: points.length
-      });
-      render();
+      notice = "Draw a complete outline before submitting. A quick tap or short line cannot be scored.";
+      const message = root.querySelector(".board-message");
+      if (message) message.textContent = notice;
       return;
     }
 
@@ -445,6 +453,12 @@
     const aspectPenalty = Math.abs(aspect(points) - aspect(targetPoints)) * 8;
     const raw = 100 - distance * 2.15 - aspectPenalty;
     score = Math.max(0, Math.min(100, Math.round(raw)));
+    revealed = true;
+    notice = `Compared ${points.length} drawing points with the ${target.name} reference outline.`;
+    stats[modeKey] = stats[modeKey] || { rounds: 0, best: 0 };
+    stats[modeKey].rounds += 1;
+    stats[modeKey].best = Math.max(stats[modeKey].best, score);
+    saveStats(stats);
     track("drawing_submitted", {
       game_mode: modeKey,
       target_slug: target.slug,
@@ -537,10 +551,17 @@
 
   function nextTarget() {
     const pool = currentMode.pool;
-    const index = Math.max(0, pool.findIndex(function (item) { return item.slug === target.slug; }));
-    target = pool[(index + 1) % pool.length];
+    if (pool.length > 1) {
+      let next = target;
+      while (next.slug === target.slug) {
+        next = pool[Math.floor(Math.random() * pool.length)];
+      }
+      target = next;
+    }
     targetSlug = target.slug;
     score = null;
+    revealed = false;
+    notice = "";
     strokes = [];
     answered = false;
     drawingStarted = false;
@@ -554,10 +575,8 @@
 
   function copyResult() {
     if (score === null) return;
-    const text = `I scored ${score}/100 drawing ${target.name} on Country Draw.`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-    }
+    const text = `I scored ${score}/100 drawing ${target.name} on Country Draw: ${location.href}`;
+    copyText(text);
     track("result_shared", {
       game_mode: modeKey,
       target_slug: target.slug,
@@ -603,6 +622,72 @@
     return options.sort(function (a, b) {
       return (a.slug.charCodeAt(0) + a.name.length) - (b.slug.charCodeAt(0) + b.name.length);
     });
+  }
+
+  function targetButtons(pool, selectedSlug) {
+    const visible = pool.slice(0, 12);
+    if (!visible.length) {
+      return `<p class="empty-search">No matching shape. Try another spelling.</p>`;
+    }
+    return visible.map(function (item) {
+      return `<button class="${item.slug === selectedSlug ? "is-selected" : ""}" data-target-pick="${item.slug}">${escapeHtml(item.name)}</button>`;
+    }).join("");
+  }
+
+  function pickTarget(slug, source) {
+    const picked = findTarget(modeKey, slug);
+    if (!picked) return;
+    target = picked;
+    targetSlug = picked.slug;
+    score = null;
+    revealed = false;
+    notice = "";
+    strokes = [];
+    drawingStarted = false;
+    track("target_changed", {
+      game_mode: modeKey,
+      target_slug: target.slug,
+      change_source: source
+    });
+    render();
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).catch(function () {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.setAttribute("readonly", "");
+    field.style.position = "fixed";
+    field.style.opacity = "0";
+    document.body.appendChild(field);
+    field.select();
+    document.execCommand("copy");
+    field.remove();
+  }
+
+  function loadStats() {
+    try {
+      return JSON.parse(localStorage.getItem("country-draw-stats") || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  function saveStats(value) {
+    try {
+      localStorage.setItem("country-draw-stats", JSON.stringify(value));
+    } catch {
+      // The game remains fully usable when storage is unavailable.
+    }
   }
 
   function escapeHtml(value) {

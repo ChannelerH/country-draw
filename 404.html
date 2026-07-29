@@ -30,24 +30,28 @@
 <body>
   <div data-country-draw-app data-mode="world" data-target=""></div>
   <main class="seo-wrap">
-    <article class="seo-card">
+    <article class="seo-card" data-primary-keyword="country draw">
       <p class="kicker">Geography drawing game</p>
       <h1>Country Draw</h1>
-      <p>This page was not found, but the drawing game is ready.</p>
-      <div class="seo-columns">
-        <section>
-          <h2>What to Notice</h2>
-          <p>Block in the overall width and height first. Add one memorable coastline, border, or peninsula only after the main proportion feels right.</p>
-        </section>
-        <section>
-          <h2>Practice Loop</h2>
-          <p>Each attempt turns vague map memory into a visible outline. The page is intentionally lightweight so repeat plays, mobile drawing, and search indexing stay fast.</p>
-        </section>
-      </div>
-      <div class="seo-columns">
-        <section><h2>Where should I go next?</h2><p>Start with the main Country Draw page or the country drawing mode.</p></section><section><h2>Can I still play?</h2><p>Yes. The app loads on this page too.</p></section>
-      </div>
+      <p class="seo-lead">This page was not found, but the drawing game is ready.</p>
+      <section class="content-section"><h2>Start a Geography Drawing Challenge</h2><p>Block in the overall width and height first. Add one memorable coastline, border, or peninsula only after the main proportion feels right.</p></section>
+      <section class="faq-section" aria-labelledby="faq-heading">
+        <p class="kicker">Common questions</p>
+        <h2 id="faq-heading">Country Drawing FAQ</h2>
+        <div class="faq-list">
+          <details><summary>Where should I go next?</summary><p>Start with the main Country Draw page or the country drawing mode.</p></details><details><summary>Can I still play?</summary><p>Yes. The app loads on this page too.</p></details>
+        </div>
+      </section>
     </article>
+
+    <nav class="link-directory" aria-label="Popular Country Drawing Challenges">
+      <p class="kicker">Choose a challenge</p>
+      <h2>Popular Country Drawing Challenges</h2>
+      <div class="directory-links">
+        <a href="/draw/italy/">Draw Italy</a><a href="/draw/france/">Draw France</a><a href="/draw/japan/">Draw Japan</a><a href="/draw/brazil/">Draw Brazil</a><a href="/draw/india/">Draw India</a><a href="/draw/united-states/">Draw United States</a><a href="/draw/mexico/">Draw Mexico</a><a href="/draw/australia/">Draw Australia</a><a href="/draw/united-kingdom/">Draw United Kingdom</a><a href="/draw/germany/">Draw Germany</a><a href="/draw/canada/">Draw Canada</a><a href="/draw/spain/">Draw Spain</a><a href="/draw/norway/">Draw Norway</a><a href="/draw/argentina/">Draw Argentina</a><a href="/draw/south-africa/">Draw South Africa</a><a href="/draw/egypt/">Draw Egypt</a><a href="/draw/china/">Draw China</a><a href="/draw/russia/">Draw Russia</a><a href="/draw/sweden/">Draw Sweden</a><a href="/draw/greece/">Draw Greece</a><a href="/draw/turkey/">Draw Turkey</a><a href="/draw/indonesia/">Draw Indonesia</a><a href="/draw/new-zealand/">Draw New Zealand</a><a href="/draw/ireland/">Draw Ireland</a>
+      </div>
+    </nav>
+
     <aside class="related-panel">
       <h2>Related Geography Games</h2>
       <div class="related-links">
@@ -57,8 +61,9 @@
   </main>
   <footer class="site-footer">
     Country Draw is a free browser geography game.
-    <span class="footer-links"><a href="/privacy/">Privacy</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
+    <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Map data</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
+  <script src="/assets/country-shapes.js" defer></script>
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
