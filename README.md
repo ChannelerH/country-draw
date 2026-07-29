@@ -1,5 +1,12 @@
 # Country Draw
 
+**Play the free geography game:** [countrydraw.games](https://countrydraw.games/)
+
+Draw countries from memory on a real map, then compare your outline with the
+true border using matched, missed, and extra-area scoring. Country Draw includes
+daily challenges, 197 country practice targets, US states, Canadian provinces,
+Australian states, and UK regions.
+
 Static geography drawing game built for search traffic around:
 
 - country draw
