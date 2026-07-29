@@ -303,6 +303,7 @@ function template(page) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>${redirectScript()}</script>
   <title>${escapeHtml(page.title)}</title>
   <meta name="description" content="${escapeHtml(page.description)}">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -380,6 +381,10 @@ function practiceTip(page) {
   return "Block in the overall width and height first. Add one memorable coastline, border, or peninsula only after the main proportion feels right.";
 }
 
+function redirectScript() {
+  return `(function(){var h=location.hostname;if(h==="www.countrydraw.games"||(h==="countrydraw.games"&&location.protocol!=="https:")){location.replace("https://countrydraw.games"+location.pathname+location.search+location.hash);}})();`;
+}
+
 function privacyTemplate() {
   const title = "Privacy - Country Draw";
   const description = "Learn how Country Draw uses Google Analytics and manage your analytics choice.";
@@ -388,6 +393,7 @@ function privacyTemplate() {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>${redirectScript()}</script>
   <title>${title}</title>
   <meta name="description" content="${description}">
   <meta name="robots" content="index, follow">
