@@ -909,6 +909,7 @@ h3 {
 }
 
 .region-tabs button,
+.region-tabs a,
 .mode-segment button,
 .map-toolbox button,
 .primary-controls button,
@@ -923,13 +924,20 @@ h3 {
   font-weight: 800;
 }
 
-.region-tabs button {
+.region-tabs button,
+.region-tabs a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 7px 14px;
+  text-decoration: none;
   white-space: nowrap;
 }
 
 .region-tabs button:hover,
 .region-tabs button.is-active,
+.region-tabs a:hover,
+.region-tabs a.is-active,
 .mode-segment button.is-active,
 .map-toolbox button.is-active,
 .challenge-switcher > button.is-active {
@@ -1796,7 +1804,8 @@ body:has(.consent-panel) .map-result-overlay:not([hidden]) {
     font-size: 1.12rem;
   }
 
-  .region-tabs button {
+  .region-tabs button,
+  .region-tabs a {
     padding: 6px 10px;
     font-size: 0.78rem;
   }

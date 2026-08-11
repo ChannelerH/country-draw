@@ -23,7 +23,7 @@
   <meta name="twitter:description" content="A geography drawing game for countries, US states, flags, and country outlines. Play online without a download.">
   <meta name="twitter:image" content="https://countrydraw.games/assets/og-country-draw.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/styles.css?v=20260729-map-poster">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260811-region-pages">
   <script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebApplication","name":"Country Draw","url":"https://countrydraw.games/geography-drawing-game/","applicationCategory":"GameApplication","operatingSystem":"Any","description":"A geography drawing game for countries, US states, flags, and country outlines. Play online without a download.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What can I draw?","acceptedAnswer":{"@type":"Answer","text":"Countries, selected US states, and simplified flag layouts."}},{"@type":"Question","name":"Is it a learning tool or a game?","acceptedAnswer":{"@type":"Answer","text":"It is both: quick enough to play, structured enough to practice geography recall."}},{"@type":"Question","name":"Can new packs be added?","acceptedAnswer":{"@type":"Answer","text":"Yes. The static data model supports more regions and topic packs."}}]},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Country Draw","item":"https://countrydraw.games/"},{"@type":"ListItem","position":2,"name":"Geography Drawing Game","item":"https://countrydraw.games/geography-drawing-game/"}]},{"@context":"https://schema.org","@type":"WebSite","name":"Country Draw","url":"https://countrydraw.games/","inLanguage":"en"}]</script>
   <script src="/assets/analytics.js"></script>
 </head>
@@ -37,18 +37,14 @@
           <span>Country Draw</span>
         </a>
         <nav class="region-tabs" aria-label="Challenge regions">
-          <button type="button" class="is-active" disabled>World</button>
-          <button type="button" disabled>US States</button>
-          <button type="button" disabled>Canada</button>
-          <button type="button" disabled>Australia</button>
-          <button type="button" disabled>UK</button>
+          <a href="/" class="is-active" aria-current="page">World</a><a href="/draw-us-states/">US States</a><a href="/draw-canada-provinces/">Canada</a><a href="/draw-australia-states/">Australia</a><a href="/draw-uk-countries/">UK</a>
         </nav>
       </header>
 
       <div class="map-game-workspace">
         <section class="map-stage" aria-label="Interactive drawing map">
           <div class="prerender-map" role="img" aria-label="Interactive geography map loading">
-            <img class="prerender-map-poster" src="/assets/map-prerender-world.webp" width="1230" height="834" alt="Country Draw world map challenge showing a covered country in Africa" fetchpriority="high" decoding="async">
+            <img class="prerender-map-poster" src="/assets/map-prerender-world.webp" width="1230" height="834" alt="Country Draw world map challenge showing a covered country" fetchpriority="high" decoding="async">
           </div>
 
           <div class="map-toolbox" aria-label="Map drawing tools">
@@ -165,7 +161,7 @@
     <aside class="related-panel">
       <h2>Related Geography Games</h2>
       <div class="related-links">
-        <a href="/">Country Draw</a><a href="/draw-country/">Draw Country</a><a href="/draw-us-states/">Draw US States</a><a href="/draw-flags-from-memory/">Draw Flags</a><a href="/country-outline-quiz/">Country Outline Quiz</a><a href="/draw-country-borders/">Draw Country Borders</a>
+        <a href="/">Country Draw</a><a href="/draw-country/">Draw Country</a><a href="/draw-us-states/">Draw US States</a><a href="/draw-canada-provinces/">Draw Canadian Provinces</a><a href="/draw-australia-states/">Draw Australian States</a><a href="/draw-uk-countries/">Draw UK Countries</a>
       </div>
     </aside>
   </main>
@@ -174,6 +170,6 @@
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
 
-  <script src="/assets/app.js?v=20260729-map-poster" defer></script>
+  <script src="/assets/app.js?v=20260811-region-pages" defer></script>
 </body>
 </html>

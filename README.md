@@ -13,6 +13,9 @@ Static geography drawing game built for search traffic around:
 - draw the country
 - draw countries from memory
 - draw US states
+- draw Canadian provinces from memory
+- draw Australian states from memory
+- draw UK countries from memory
 - draw flags from memory
 - country outline quiz
 
@@ -39,7 +42,7 @@ SITE_URL=https://your-domain.com node scripts/generate-pages.mjs
 Generated outputs include:
 
 - `index.html`
-- core keyword routes
+- core keyword and regional mode routes
 - country, US state, and flag long tail routes
 - `sitemap.xml`
 - `robots.txt`

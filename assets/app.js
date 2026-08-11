@@ -6,7 +6,7 @@
 
   const requestedMode = root.dataset.mode || "world";
   if (requestedMode === "flags" || requestedMode === "outline") {
-    await loadScript("/assets/legacy-app.js?v=20260729-prerender");
+    await loadScript("/assets/legacy-app.js?v=20260811-region-pages");
     return;
   }
 
@@ -36,11 +36,11 @@
 
   function CountryMapGame(container, pageMode) {
     const regionConfig = {
-      world: { label: "World", noun: "country" },
-      us: { label: "US States", noun: "state" },
-      canada: { label: "Canada", noun: "province or territory" },
-      australia: { label: "Australia", noun: "state or territory" },
-      uk: { label: "UK", noun: "country" }
+      world: { label: "World", noun: "country", path: "/" },
+      us: { label: "US States", noun: "state", path: "/draw-us-states/" },
+      canada: { label: "Canada", noun: "province or territory", path: "/draw-canada-provinces/" },
+      australia: { label: "Australia", noun: "state or territory", path: "/draw-australia-states/" },
+      uk: { label: "UK", noun: "country", path: "/draw-uk-countries/" }
     };
     const emptyCollection = () => ({ type: "FeatureCollection", features: [] });
     const mapData = window.COUNTRY_DRAW_MAP_DATA;
@@ -48,7 +48,8 @@
     const prerenderPoster = container.querySelector(".prerender-map-poster");
     const prerenderPosterSrc = prerenderPoster?.currentSrc || prerenderPoster?.src || "";
 
-    let regionKey = pageMode === "states" ? "us" : "world";
+    const requestedRegion = pageMode === "states" ? "us" : pageMode;
+    let regionKey = regionConfig[requestedRegion] && mapData[requestedRegion] ? requestedRegion : "world";
     let gameMode = localStorage.getItem("country-draw-map-mode") === "capital" ? "capital" : "cover";
     let challengeType = dedicatedSlug ? "practice" : "daily";
     let target = findFeature(regionKey, dedicatedSlug) || dailyFeature(regionKey, gameMode);
@@ -81,9 +82,9 @@
             </a>
             <nav class="region-tabs" aria-label="Challenge region">
               ${Object.entries(regionConfig).map(([key, region]) => `
-                <button type="button" data-region="${key}" class="${key === regionKey ? "is-active" : ""}">
+                <a href="${region.path}" data-region="${key}" class="${key === regionKey ? "is-active" : ""}" ${key === regionKey ? 'aria-current="page"' : ""}>
                   ${region.label}
-                </button>
+                </a>
               `).join("")}
             </nav>
           </header>
@@ -311,9 +312,12 @@
     }
 
     function bindControls() {
-      container.querySelectorAll("[data-region]").forEach((button) => {
-        button.addEventListener("click", function () {
-          changeRegion(button.dataset.region);
+      container.querySelectorAll("[data-region]").forEach((link) => {
+        link.addEventListener("click", function () {
+          track("region_navigation", {
+            from_region: regionKey,
+            to_region: link.dataset.region
+          });
         });
       });
       container.querySelectorAll("[data-game-mode]").forEach((button) => {
@@ -373,18 +377,6 @@
           undoPath();
         }
       });
-    }
-
-    function changeRegion(nextRegion) {
-      if (!mapData[nextRegion] || nextRegion === regionKey) return;
-      regionKey = nextRegion;
-      challengeType = "daily";
-      container.querySelectorAll("[data-region]").forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.region === regionKey);
-      });
-      populatePracticeSelect();
-      startChallenge(dailyFeature(regionKey, gameMode), "daily");
-      track("region_changed", { region: regionKey, game_mode: gameMode });
     }
 
     function changeGameMode(nextMode) {

@@ -4,10 +4,21 @@ import { dirname, join } from "node:path";
 const root = process.cwd();
 const siteUrl = (process.env.SITE_URL || "https://countrydraw.games").replace(/\/$/, "");
 
+const regionLinks = [
+  { mode: "world", href: "/", label: "World", noun: "country", poster: "/assets/map-prerender-world.webp", posterAlt: "Country Draw world map challenge showing a covered country" },
+  { mode: "states", href: "/draw-us-states/", label: "US States", noun: "state", poster: "/assets/map-prerender-states.webp", posterAlt: "Country Draw US States map challenge showing a covered state" },
+  { mode: "canada", href: "/draw-canada-provinces/", label: "Canada", noun: "province or territory", poster: "/assets/map-prerender-canada.webp", posterAlt: "Country Draw Canada map challenge showing a covered province or territory" },
+  { mode: "australia", href: "/draw-australia-states/", label: "Australia", noun: "state or territory", poster: "/assets/map-prerender-australia.webp", posterAlt: "Country Draw Australia map challenge showing a covered state or territory" },
+  { mode: "uk", href: "/draw-uk-countries/", label: "UK", noun: "country", poster: "/assets/map-prerender-uk.webp", posterAlt: "Country Draw UK map challenge showing a covered country" }
+];
+
 const coreLinks = [
   { href: "/", label: "Country Draw" },
   { href: "/draw-country/", label: "Draw Country" },
   { href: "/draw-us-states/", label: "Draw US States" },
+  { href: "/draw-canada-provinces/", label: "Draw Canadian Provinces" },
+  { href: "/draw-australia-states/", label: "Draw Australian States" },
+  { href: "/draw-uk-countries/", label: "Draw UK Countries" },
   { href: "/draw-flags-from-memory/", label: "Draw Flags" },
   { href: "/country-outline-quiz/", label: "Country Outline Quiz" },
   { href: "/draw-country-borders/", label: "Draw Country Borders" }
@@ -159,6 +170,51 @@ const pages = [
     ]
   },
   {
+    path: "/draw-canada-provinces/",
+    primaryKeyword: "draw Canadian provinces from memory",
+    title: "Draw Canadian Provinces From Memory | Country Draw",
+    description: "Draw Canadian provinces from memory on a real map. Practice all 10 provinces and three territories with instant outline feedback.",
+    mode: "canada",
+    h1: "Draw Canadian Provinces From Memory",
+    intro: "Draw Canadian provinces from memory on a real map, compare your border with the actual province or territory, and use matched, missed, and extra areas to improve the next attempt.",
+    faq: [
+      ["Which Canadian provinces and territories can I draw?", "Canada mode includes all 10 provinces and the Yukon, Northwest Territories, and Nunavut."],
+      ["Can I choose a specific Canadian province?", "Yes. Select any province or territory from the practice list and repeat it as often as needed."],
+      ["Does the Canada drawing game work on mobile?", "Yes. You can draw with a finger or stylus and switch to Move mode when you need to pan or zoom."],
+      ["Is an account required?", "No. Country Draw is free to use in the browser and stores game statistics locally on the current device."]
+    ]
+  },
+  {
+    path: "/draw-australia-states/",
+    primaryKeyword: "draw Australian states from memory",
+    title: "Draw Australian States From Memory | Country Draw",
+    description: "Draw Australian states from memory on a real map. Practice all six states and two mainland territories with instant shape feedback.",
+    mode: "australia",
+    h1: "Draw Australian States From Memory",
+    intro: "Draw Australian states from memory by reconstructing one state or territory inside the national map, then compare your sketch with the real boundary and correct its proportion or placement.",
+    faq: [
+      ["Which Australian states and territories are included?", "Australia mode includes the six states, the Northern Territory, and the Australian Capital Territory."],
+      ["Can I practice one Australian state repeatedly?", "Yes. Choose a state or territory from the practice list, submit a drawing, and use Try again for another attempt."],
+      ["How are straight state borders scored?", "The game compares the full geographic area, so aspect ratio, placement, coastlines, and straight internal borders all affect the result."],
+      ["Can students play without signing in?", "Yes. No account, download, or payment is required."]
+    ]
+  },
+  {
+    path: "/draw-uk-countries/",
+    primaryKeyword: "draw UK countries from memory",
+    title: "Draw UK Countries From Memory | Country Draw",
+    description: "Draw UK countries from memory on a real map. Practice England, Scotland, Wales, and Northern Ireland with immediate outline feedback.",
+    mode: "uk",
+    h1: "Draw UK Countries From Memory",
+    intro: "Draw UK countries from memory on a detailed map of the United Kingdom, then reveal the true boundary and compare the parts you matched, missed, or drew outside the target.",
+    faq: [
+      ["Which UK countries can I draw?", "UK mode includes England, Scotland, Wales, and Northern Ireland."],
+      ["Is this a UK counties quiz?", "No. This mode focuses on the four constituent countries of the United Kingdom rather than ceremonial or administrative counties."],
+      ["Can I switch between cover and capital clues?", "Yes. Cover mode hides the target area, while Capital mode leaves the map visible and marks the capital as the main clue."],
+      ["Does the UK map drawing game work on phones?", "Yes. Touch drawing, panning, zooming, undo, and retry controls work on mobile devices."]
+    ]
+  },
+  {
     path: "/draw-flags-from-memory/",
     primaryKeyword: "draw flags from memory",
     title: "Draw Flags From Memory",
@@ -246,6 +302,24 @@ const corePageProfiles = {
     focus: "State outlines combine coastlines, rivers, surveyed lines, and borders inherited from neighboring states. This creates a useful range from simple angular shapes to irregular coastal silhouettes.",
     scoring: "The drawing comparison favors the overall outline. For a nearly rectangular state, watch the aspect ratio. For a coastal or river state, place the biggest curve first. A recognizable state with simplified edges is a stronger result than detailed edges with the wrong proportions.",
     practice: "Practice by region so neighboring states reinforce one another. Move from a distinctive shape to a harder nearby state, and revisit missed outlines after several rounds instead of immediately memorizing the revealed answer. Keep a short list of shapes that need another attempt later."
+  },
+  "/draw-canada-provinces/": {
+    play: "To draw Canadian provinces from memory, start with the national outline and locate the province or territory within it. Set the widest and tallest points first, then connect coastlines, straight survey lines, or shared borders into one closed shape.",
+    focus: "Canada offers several kinds of spatial recall in one set. The prairie provinces emphasize proportion and mostly straight borders, coastal provinces add irregular shorelines, and the northern territories require a much larger sense of scale and orientation.",
+    scoring: "Matched area shows how much of the province or territory your sketch covered correctly. Missed area reveals land left outside the drawing, while extra area shows where the sketch crossed into a neighbor or beyond the coastline.",
+    practice: "Learn Canadian regions in small groups. Compare the three prairie provinces, then move through Atlantic Canada, central Canada, the Pacific coast, and the territories. Revisit one difficult outline after a delay instead of tracing the revealed border."
+  },
+  "/draw-australia-states/": {
+    play: "To draw Australian states from memory, first place the target inside Australia's recognizable national outline. Establish the state or territory's width and height, mark any coastline, and then connect the major internal borders.",
+    focus: "Australian state shapes mix long straight borders with coastlines and compact enclaves. Western Australia, Queensland, and New South Wales depend on different coastal profiles, while the Northern Territory and South Australia make aspect ratio especially important.",
+    scoring: "A drawing can follow the correct border direction but still lose accuracy if it is too wide, too narrow, or shifted inside the national map. Read matched, missed, and extra areas together to identify whether proportion or placement caused the largest error.",
+    practice: "Begin with one large state and one neighboring state so the shared border reinforces both shapes. Add Tasmania and the Australian Capital Territory after the mainland layout feels stable, then return to a mixed daily challenge."
+  },
+  "/draw-uk-countries/": {
+    play: "To draw UK countries from memory, locate the target within the United Kingdom and build its outline from the strongest coast or shared border. Keep the overall north-south orientation visible before adding smaller bays, peninsulas, and border turns.",
+    focus: "England, Scotland, Wales, and Northern Ireland are close together but use different memory cues. Scotland is dominated by a rugged northern coastline, Wales by a western peninsula, England by its longer southern form, and Northern Ireland by a compact island boundary.",
+    scoring: "The result compares geographic area rather than artistic detail. A simplified but correctly placed outline can score better than a detailed shape with the wrong scale, direction, or relationship to the surrounding coastline.",
+    practice: "Alternate countries that share a border, such as England and Scotland or England and Wales. Drawing both sides of the same boundary makes the division easier to remember, while delayed repetition checks whether the full outline remains available without a reference map."
   },
   "/draw-flags-from-memory/": {
     play: "To draw flags from memory, establish the flag ratio and largest color blocks before adding symbols. Divide the field into bands, crosses, panels, or nested shapes, then place the central emblem last.",
@@ -466,7 +540,7 @@ function template(page) {
   <meta name="twitter:description" content="${escapeHtml(page.description)}">
   <meta name="twitter:image" content="${socialImage}">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/styles.css?v=20260729-map-poster">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260811-region-pages">
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   <script src="/assets/analytics.js"></script>
 </head>
@@ -501,7 +575,7 @@ function template(page) {
     <span class="footer-links"><a href="/privacy/">Privacy</a><a href="https://www.naturalearthdata.com/" rel="external">Natural Earth</a><a href="https://www.geoboundaries.org/" rel="external">geoBoundaries</a><button class="footer-privacy-button" type="button" data-privacy-choices>Analytics choices</button></span>
   </footer>
   ${["flags", "outline"].includes(page.mode) ? '<script src="/assets/country-shapes.js" defer></script>' : ""}
-  <script src="/assets/app.js?v=20260729-map-poster" defer></script>
+  <script src="/assets/app.js?v=20260811-region-pages" defer></script>
 </body>
 </html>
 `;
@@ -519,8 +593,8 @@ function gamePrerenderTemplate(page) {
     `;
   }
 
-  const isStates = page.mode === "states";
-  const noun = isStates ? "state" : "country";
+  const region = regionLinks.find((item) => item.mode === page.mode) || regionLinks[0];
+  const noun = region.noun;
   const targetName = page.name || "";
   const challengeTitle = targetName
     ? `Draw ${targetName} from memory`
@@ -530,17 +604,13 @@ function gamePrerenderTemplate(page) {
     ? targetName
     : `Choose a ${noun} after the map loads`;
   const mapPoster = targetName
-    ? isStates
+    ? page.mode === "states"
       ? `/assets/map-prerender/states/${page.target}.webp`
       : `/assets/map-prerender/world/${page.target}.webp`
-    : isStates
-      ? "/assets/map-prerender-states.webp"
-      : "/assets/map-prerender-world.webp";
+    : region.poster;
   const mapPosterAlt = targetName
     ? `Country Draw map challenge with ${targetName} covered for drawing from memory`
-    : isStates
-      ? "Country Draw US States map challenge showing a covered state"
-      : "Country Draw world map challenge showing a covered country in Africa";
+    : region.posterAlt;
 
   return `
     <section class="map-game-shell map-game-prerender" data-prerender-game aria-label="Country Draw map game" aria-busy="true">
@@ -550,11 +620,7 @@ function gamePrerenderTemplate(page) {
           <span>Country Draw</span>
         </a>
         <nav class="region-tabs" aria-label="Challenge regions">
-          <button type="button"${!isStates ? ' class="is-active"' : ""} disabled>World</button>
-          <button type="button"${isStates ? ' class="is-active"' : ""} disabled>US States</button>
-          <button type="button" disabled>Canada</button>
-          <button type="button" disabled>Australia</button>
-          <button type="button" disabled>UK</button>
+          ${regionLinks.map((item) => `<a href="${item.href}"${item.mode === page.mode ? ' class="is-active" aria-current="page"' : ""}>${item.label}</a>`).join("")}
         </nav>
       </header>
 
@@ -825,6 +891,11 @@ function directoryTemplate(page) {
       href: `/draw/us/${item.slug}/`,
       label: `Draw ${item.name}`
     }));
+  } else if (["canada", "australia", "uk"].includes(page.mode)) {
+    heading = "More Regional Drawing Modes";
+    links = regionLinks
+      .filter((item) => item.mode !== page.mode)
+      .map((item) => ({ href: item.href, label: `Draw ${item.label}` }));
   } else if (page.mode === "flags") {
     heading = "Flag Drawing Practice";
     links = flags.map((item) => ({
@@ -865,6 +936,15 @@ function practiceTip(page) {
   }
   if (page.mode === "states") {
     return "Look for the longest edge, the overall aspect ratio, and one distinctive corner. Those three anchors make a state outline much easier to recall.";
+  }
+  if (page.mode === "canada") {
+    return "Place the province or territory inside Canada's full outline before drawing details. Shared borders and coastline direction are the strongest anchors.";
+  }
+  if (page.mode === "australia") {
+    return "Use Australia's national coastline as the frame, then judge the target's aspect ratio and its straight internal borders before adding detail.";
+  }
+  if (page.mode === "uk") {
+    return "Start with the strongest coastline or shared border, then check how the country sits inside the United Kingdom before closing the shape.";
   }
   if (page.mode === "outline") {
     return "Compare the silhouette's width, coastline direction, and any narrow peninsula before choosing an answer. Then draw the same shape to strengthen recall.";
